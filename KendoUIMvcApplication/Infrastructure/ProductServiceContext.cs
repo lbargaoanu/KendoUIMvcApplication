@@ -39,7 +39,7 @@ namespace KendoUIMvcApplication
         {
         }
 
-        protected internal ProductServiceContext() : base("ProductServiceContext")
+        public ProductServiceContext() : base("ProductServiceContext")
         {
         }
 

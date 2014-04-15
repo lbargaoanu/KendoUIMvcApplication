@@ -13,6 +13,7 @@ namespace KendoUIMvcApplication
 {
     public class CrudController<TEntity> : BaseController where TEntity : Entity
     {
+        [NonAction]
         public virtual IQueryable<TEntity> Include(IQueryable<TEntity> entities)
         {
             return entities;

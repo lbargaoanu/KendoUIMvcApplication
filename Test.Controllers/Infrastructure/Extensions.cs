@@ -30,10 +30,32 @@ namespace Test.Controllers.Integration
 {
     public static class Extensions
     {
-        private static readonly ProductServiceContext context = ContextHelper.BuildContext();
+        private static readonly ProductServiceContext dbContext = ContextHelper.BuildContext();
 
         public static void Initialize()
         {
+        }
+
+        public class MyCustomization : ICustomization, ISpecimenBuilder
+        {
+            public void Customize(IFixture fixture)
+            {
+                fixture.Customize<ProductServiceContext>(c => c.FromFactory(() => new TestProductServiceContext()).OmitAutoProperties());
+                fixture.RepeatCount = 8;
+                fixture.Customizations.Add(this);
+            }
+
+            public object Create(object request, ISpecimenContext context)
+            {
+                var pi = request as PropertyInfo;
+                if(pi != null && pi.PropertyType.IsEntity())
+                {
+                    var entity = dbContext.Set(pi.PropertyType).Find(1);
+                    dbContext.Entry(entity).State = EntityState.Detached;
+                    return entity;
+                }
+                return new NoSpecimen(request);
+            }
         }
 
         public static void HandleAndSave<TCommand>(this CommandHandler<ProductServiceContext, TCommand> handler, TCommand command) where TCommand : ICommand
@@ -44,6 +66,11 @@ namespace Test.Controllers.Integration
             }
             handler.Handle(command);
             handler.Context.SaveChanges();
+        }
+
+        public static bool IsEntity(this Type type)
+        {
+            return typeof(Entity).IsAssignableFrom(type);
         }
 
         public static IHttpActionResult PutAndSave<TEntity>(this CrudController<TEntity> controller, TEntity entity) where TEntity : Entity
@@ -325,6 +352,12 @@ namespace Test.Controllers.Integration
             Assert.Equal(0, result);
             result = context.Database.ExecuteSqlCommand("PRAGMA foreign_keys = ON;");
             Assert.Equal(0, result);
+
+            context.Categories.Add(new Category { CategoryName = "Category1" });
+            context.Suppliers.Add(new Supplier { CompanyName = "Supplier1" });
+
+            context.SaveChanges();
+
             return context;
         }
 
@@ -381,33 +414,8 @@ namespace Test.Controllers.Integration
     public class MyAutoDataAttribute : AutoDataAttribute
     {
         public MyAutoDataAttribute()
-            : base(new Fixture().Customize(new MyCustomization()).Customize(new AutoMoqCustomization()))
+            : base(new Fixture().Customize(new Extensions.MyCustomization()).Customize(new AutoMoqCustomization()))
         {
-            Extensions.Initialize();
-        }
-    }
-
-    public class MyCustomization : ICustomization, ISpecimenBuilder
-    {
-        public void Customize(IFixture fixture)
-        {
-            fixture.Customize<ProductServiceContext>(c => c.FromFactory(()=>new TestProductServiceContext()).OmitAutoProperties());
-            fixture.RepeatCount = 8;
-            fixture.Customizations.Add(this);
-        }
-
-        public object Create(object request, ISpecimenContext context)
-        {
-            var pi = request as PropertyInfo;
-            if(pi == null)
-            {
-                return new NoSpecimen(request);
-            }
-            if(pi.PropertyType != typeof(int) || pi.Name != "Id")
-            {
-                return new NoSpecimen(request);
-            }
-            return 0;
         }
     }
 }

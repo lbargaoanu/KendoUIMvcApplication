@@ -10,13 +10,15 @@ namespace Test.Controllers.Integration
 {
     public class ProductControllerTests : ControllerTests<ProductController, Product>
     {
-        [RepeatTheory(1), MyAutoData]
-        public override void ShouldModify(Product modified, ProductServiceContext createContext, ProductServiceContext readContext)
-        {
-            createContext.AddAndSave(modified.Category);
-            createContext.AddAndSave(modified.Supplier);
-            base.ShouldModify(modified, createContext, readContext);
-        }
+        //[RepeatTheory(1), MyAutoData]
+        //public override void ShouldModify(Product modified, ProductServiceContext createContext, ProductServiceContext readContext)
+        //{
+        //    //createContext.AddAndSave(modified.Category);
+        //    //createContext.AddAndSave(modified.Supplier);
+        //    modified.Category = readContext.Categories.First();
+        //    modified.Supplier = readContext.Suppliers.First();
+        //    base.ShouldModify(modified, createContext, readContext);
+        //}
 
         //[RepeatTheory(1), MyAutoData]
         //public void ShouldReturnAllProducts(Product[] products, ProductServiceContext createContext, AllProductsHandler handler)
