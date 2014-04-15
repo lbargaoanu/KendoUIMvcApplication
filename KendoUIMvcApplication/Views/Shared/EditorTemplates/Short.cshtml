@@ -1,0 +1,7 @@
+@model short?
+
+@(Html.Kendo().IntegerTextBoxFor(m => m)
+      .HtmlAttributes(new { style = "width:100%" })
+      .Min(short.MinValue)
+      .Max(short.MaxValue)
+))

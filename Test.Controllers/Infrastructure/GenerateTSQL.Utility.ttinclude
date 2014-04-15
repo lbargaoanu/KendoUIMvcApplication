@@ -1,0 +1,131 @@
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Xml" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Configuration" #>
+<#@ import namespace="System.Data" #>
+<#@ import namespace="System.Data.Entity" #>
+<#@ import namespace="System.Data.Entity.Core.Metadata.Edm" #>
+<#@ import namespace="System.Runtime.Remoting.Messaging" #>
+<#@ import namespace="System.Data.Entity.Infrastructure" #>
+<#@ import namespace="KendoUIMvcApplication" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#+
+
+private static object x = Init();
+
+private static object Init()
+{
+    var section = ConfigurationManager.GetSection("system.data") as DataSet;
+	var providers = section.Tables["DbProviderFactories"].Rows;
+    if(providers.Find(DbResolver.Name) == null)
+    {
+		providers.Add(DbResolver.Name, DbResolver.Name, DbResolver.Name, DbResolver.FactoryName);
+	}
+	return new TemplateDbConfiguration();
+}
+
+private StoreItemCollection _store;
+
+public class TemplateDbConfiguration : DbConfiguration
+{
+    public TemplateDbConfiguration()
+    {
+		SetProviderServices(DbResolver.Name, DbResolver.Provider);
+		var resolver = new DbResolver();
+		var internalResolver = DependencyResolver.AsDynamic().First;
+		internalResolver.Add(resolver);
+    }
+}
+
+private StoreItemCollection Store
+{
+    get
+    {
+        if (_store == null)
+        {
+            _store = (StoreItemCollection) ContextHelper.GetSchema();
+        }
+        return _store;
+    }
+}
+
+/// <summary>
+/// Retrieve data of type T from CallContext given a string-based identity.
+/// This is used to pass data from a workflow into the template since the workflow
+/// utilizes the VS TextTemplatingService which runs the template in a separate AppDomain.
+/// </summary>
+private T GetInput<T>(string identity) where T : class
+{
+    return CallContext.GetData(identity) as T;
+}
+
+/// <summary>
+/// Escape identifiers enclosed by square brackets within the template
+/// </summary>
+private static string Id(string userIdentifier) 
+{
+    return userIdentifier.Replace("]", "]]");
+}
+
+/// <summary>
+/// Escape literals enclosed by single quotes within the template
+/// </summary>
+private static string Lit(string userLiteral)
+{
+    return userLiteral.Replace("'", "''");
+}
+
+/// <summary>
+/// Write the FK constraint name based on a ReferentialConstraint given the following rules:
+/// 1. The FK constraint name will be based off of the 'From' role (the principal role).
+/// 2. We will add an 'FK_' prefix if there isn't one already.
+/// </summary>
+private static string WriteFKConstraintName(ReferentialConstraint constraint)
+{
+    string fqName = String.Empty;
+    if (!constraint.FromRole.DeclaringType.Name.StartsWith("FK_", StringComparison.InvariantCultureIgnoreCase))
+    {
+        fqName = "FK_";
+    }
+    return fqName + constraint.FromRole.DeclaringType.Name;
+}
+
+/// <summary>
+/// Given a ReferentialConstraint, return "CASCADE" or "NO ACTION" depending
+/// on the OperationAction of the FromRole's DeleteBehavior.
+/// </summary>
+private static string GetDeleteAction(ReferentialConstraint refConstraint)
+{
+    OperationAction deleteAction = refConstraint.FromRole.DeleteBehavior;
+    switch (deleteAction)
+    {
+        case OperationAction.Cascade:
+            return "CASCADE";
+        case OperationAction.None:
+        default:
+            return "NO ACTION";
+    }
+}
+
+/// <summary>
+/// Write out the columns of a table given the Properties of an EntityType,
+/// escaping the identifier names.
+/// </summary>
+private static string WriteColumns(IEnumerable<EdmProperty> properties, char delimiter)
+{
+    StringBuilder serializedProperties = new StringBuilder();
+    foreach (EdmProperty property in properties)
+    {
+        serializedProperties.Append(string.Format("[{0}]", Id(property.Name)));
+        serializedProperties.Append(delimiter + " ");
+    }
+    return serializedProperties.ToString().Trim().TrimEnd(delimiter);
+}
+
+private static string WriteNullable(bool isNull)
+{
+    return (true == isNull) ? "" : " NOT NULL";
+}
+        
+#>
