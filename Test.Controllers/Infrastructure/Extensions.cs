@@ -34,33 +34,6 @@ namespace Test.Controllers.Integration
     {
         private static readonly ProductServiceContext dbContext = ContextHelper.BuildContext();
 
-        public class MyCustomization : ICustomization, ISpecimenBuilder
-        {
-            public void Customize(IFixture fixture)
-            {
-                fixture.Customize<ProductServiceContext>(c => c.FromFactory(() => new TestProductServiceContext()).OmitAutoProperties());
-                fixture.RepeatCount = 8;
-                fixture.Customizations.Add(this);
-            }
-
-            public object Create(object request, ISpecimenContext context)
-            {
-                var pi = request as PropertyInfo;
-                if(pi != null)
-                {
-                    if(pi.PropertyType.IsEntity())
-                    {
-                        return null;
-                    }
-                    else if((pi.PropertyType == typeof(int?) || pi.PropertyType == typeof(int)) && pi.Name.EndsWith("ID") && pi.Name.Length > 2)
-                    {
-                        return 1;
-                    }
-                }
-                return new NoSpecimen(request);
-            }
-        }
-
         public static void HandleAndSave<TCommand>(this CommandHandler<ProductServiceContext, TCommand> handler, TCommand command) where TCommand : ICommand
         {
             if(handler.Context == null)
@@ -463,7 +436,34 @@ namespace Test.Controllers.Integration
 
         public static IFixture CreateFixture()
         {
-            return new Fixture().Customize(new Extensions.MyCustomization()).Customize(new AutoMoqCustomization());
+            return new Fixture().Customize(new MyCustomization()).Customize(new AutoMoqCustomization());
+        }
+    }
+
+    public class MyCustomization : ICustomization, ISpecimenBuilder
+    {
+        public void Customize(IFixture fixture)
+        {
+            fixture.Customize<ProductServiceContext>(c => c.FromFactory(() => new TestProductServiceContext()).OmitAutoProperties());
+            fixture.RepeatCount = 8;
+            fixture.Customizations.Add(this);
+        }
+
+        public object Create(object request, ISpecimenContext context)
+        {
+            var pi = request as PropertyInfo;
+            if(pi != null)
+            {
+                if(pi.PropertyType.IsEntity())
+                {
+                    return null;
+                }
+                else if((pi.PropertyType == typeof(int?) || pi.PropertyType == typeof(int)) && pi.Name.EndsWith("ID") && pi.Name.Length > 2)
+                {
+                    return 1;
+                }
+            }
+            return new NoSpecimen(request);
         }
     }
 }
