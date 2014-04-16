@@ -10,6 +10,10 @@ namespace Test.Controllers.Integration
 {
     public class ProductControllerTests : ControllerTests<ProductController, Product>
     {
+        public static void Customize(Product entity)
+        {
+        }
+
         //[RepeatTheory(1), MyAutoData]
         //public override void ShouldModify(Product modified, ProductServiceContext createContext, ProductServiceContext readContext)
         //{

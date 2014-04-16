@@ -124,6 +124,7 @@
     <Compile Include="Infrastructure\ControllerTests.cs" />
     <Compile Include="Infrastructure\Extensions.cs" />
     <Compile Include="Infrastructure\PrivateReflectionDynamicObject.cs" />
+    <Compile Include="Infrastructure\SeedDatabase.cs" />
     <Compile Include="ProductControllerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

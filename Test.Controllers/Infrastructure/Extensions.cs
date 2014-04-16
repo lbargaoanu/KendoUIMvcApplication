@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Common;
@@ -33,10 +34,6 @@ namespace Test.Controllers.Integration
     {
         private static readonly ProductServiceContext dbContext = ContextHelper.BuildContext();
 
-        public static void Initialize()
-        {
-        }
-
         public class MyCustomization : ICustomization, ISpecimenBuilder
         {
             public void Customize(IFixture fixture)
@@ -51,7 +48,7 @@ namespace Test.Controllers.Integration
                 var pi = request as PropertyInfo;
                 if(pi != null)
                 {
-                    if(typeof(Entity).IsAssignableFrom(pi.PropertyType))
+                    if(pi.PropertyType.IsEntity())
                     {
                         return null;
                     }
@@ -230,13 +227,13 @@ namespace Test.Controllers.Integration
     public class DbResolver : IDbDependencyResolver
     {
         public static readonly string FactoryName = typeof(SQLiteFactory).AssemblyQualifiedName;
-        private static readonly Type ProviderType = typeof(SQLiteProviderFactory).Assembly.GetType("System.Data.SQLite.EF6.SQLiteProviderServices");
-        public static string Name = ProviderType.Assembly.GetName().Name;
+        public static readonly Type ProviderType = typeof(SQLiteProviderFactory).Assembly.GetType("System.Data.SQLite.EF6.SQLiteProviderServices");
+        public static readonly string ProviderName = ProviderType.Assembly.GetName().Name;
         public static readonly DbProviderServices Provider = (DbProviderServices)ProviderType.GetField("Instance", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
 
         public object GetService(Type type, object key)
         {
-            if(type == typeof(DbProviderServices) && key.ToString() == Name)
+            if(type == typeof(DbProviderServices) && key.ToString() == ProviderName)
             {
                 return Provider;
             }
@@ -330,7 +327,7 @@ namespace Test.Controllers.Integration
         }
     }
 
-    public static class ContextHelper
+    static partial class ContextHelper
     {
         private static string[] IntegerTypes = new[] { "int", "bigint", "smallint", "tinyint", "bit" };
         private static string[] RealTypes = new[] { "double", "decimal", "float", "real" };
@@ -369,8 +366,7 @@ namespace Test.Controllers.Integration
             result = context.Database.ExecuteSqlCommand("PRAGMA foreign_keys = ON;");
             Assert.Equal(0, result);
 
-            context.Categories.Add(new Category { CategoryName = "Category1" });
-            context.Suppliers.Add(new Supplier { CompanyName = "Supplier1" });
+            SeedDatabase(context);
 
             context.SaveChanges();
 
@@ -429,9 +425,45 @@ namespace Test.Controllers.Integration
 
     public class MyAutoDataAttribute : AutoDataAttribute
     {
-        public MyAutoDataAttribute()
-            : base(new Fixture().Customize(new Extensions.MyCustomization()).Customize(new AutoMoqCustomization()))
+        private static ConcurrentDictionary<Type, MethodInfo> customizeMethods = new ConcurrentDictionary<Type, MethodInfo>();
+
+        public MyAutoDataAttribute() : base(CreateFixture())
         {
+        }
+
+        public MethodInfo GetCustomizeMethod(Type reflectedType)
+        {
+            var testType = reflectedType.BaseType;
+            if(testType == null || !testType.IsGenericType)
+            {
+                return null;
+            }
+            return customizeMethods.GetOrAdd(reflectedType, type =>
+            {
+                var entityType = type.BaseType.GenericTypeArguments[1];
+                return type.GetMethod("Customize", new[]{entityType});
+            });
+        }
+
+        public override IEnumerable<object[]> GetData(MethodInfo methodUnderTest, Type[] parameterTypes)
+        {
+            var data = base.GetData(methodUnderTest, parameterTypes);
+            var reflectedType = methodUnderTest.ReflectedType;
+            var customizeMethod = GetCustomizeMethod(reflectedType);
+            if(customizeMethod != null)
+            {
+                var entityType = reflectedType.BaseType.GenericTypeArguments[1];
+                foreach(var parameter in data.First().Where(p => p != null && p.GetType() == entityType))
+                {
+                    customizeMethod.Invoke(null, new[] { parameter });
+                }
+            }
+            return data;
+        }
+
+        public static IFixture CreateFixture()
+        {
+            return new Fixture().Customize(new Extensions.MyCustomization()).Customize(new AutoMoqCustomization());
         }
     }
 }
