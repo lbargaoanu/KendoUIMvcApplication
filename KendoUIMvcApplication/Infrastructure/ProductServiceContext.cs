@@ -37,10 +37,17 @@ namespace KendoUIMvcApplication
     {
         protected internal ProductServiceContext(DbConnection connection) : base(connection, false)
         {
+            Init();
         }
 
         public ProductServiceContext() : base("ProductServiceContext")
         {
+            Init();
+        }
+
+        private void Init()
+        {
+            Configuration.LazyLoadingEnabled = false;
         }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)

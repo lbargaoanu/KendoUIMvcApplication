@@ -21,13 +21,13 @@ namespace KendoUIMvcApplication
 
         public DataSourceResult GetAll([ModelBinder] DataSourceRequest request)
         {
-            return Include(GetAll()).ToDataSourceResult(request);
+            return GetAll().ToDataSourceResult(request);
         }
 
         [NonAction]
         public virtual IQueryable<TEntity> GetAll()
         {
-            return Context.Set<TEntity>().AsNoTracking();
+            return Include(Context.Set<TEntity>()).AsNoTracking();
         }
 
         public IHttpActionResult Get(int id)
@@ -101,13 +101,13 @@ namespace KendoUIMvcApplication
 
         public IHttpActionResult Delete(int id)
         {
-            var entity = GetById(id);
+            var entity = Context.Set<TEntity>().Find(id);
             if(entity == null)
             {
                 return NotFound();
             }
             Delete(entity);
-            return Ok(entity);
+            return Ok();
         }
 
         protected virtual void Delete(TEntity entity)

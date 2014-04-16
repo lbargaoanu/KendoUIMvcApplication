@@ -17,6 +17,7 @@ using System.Web.Http;
 using System.Web.Http.Results;
 using AutoMapper;
 using FluentAssertions;
+using FluentAssertions.Equivalency;
 using KendoUIMvcApplication;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
@@ -48,11 +49,16 @@ namespace Test.Controllers.Integration
             public object Create(object request, ISpecimenContext context)
             {
                 var pi = request as PropertyInfo;
-                if(pi != null && pi.PropertyType.IsEntity())
+                if(pi != null)
                 {
-                    var entity = dbContext.Set(pi.PropertyType).Find(1);
-                    dbContext.Entry(entity).State = EntityState.Detached;
-                    return entity;
+                    if(typeof(Entity).IsAssignableFrom(pi.PropertyType))
+                    {
+                        return null;
+                    }
+                    else if((pi.PropertyType == typeof(int?) || pi.PropertyType == typeof(int)) && pi.Name.EndsWith("ID") && pi.Name.Length > 2)
+                    {
+                        return 1;
+                    }
                 }
                 return new NoSpecimen(request);
             }
@@ -129,11 +135,16 @@ namespace Test.Controllers.Integration
             return Assert.IsType<NotFoundResult>(result);
         }
 
+        public static OkResult AssertIsOk(this  IHttpActionResult result)
+        {
+            return Assert.IsType<OkResult>(result);
+        }
+
         public static OkNegotiatedContentResult<Wrapper> AssertIsOk<TEntity>(this  IHttpActionResult result, TEntity entity) where TEntity : Entity
         {
             var content = Assert.IsAssignableFrom<OkNegotiatedContentResult<Wrapper>>(result);
             Assert.Equal(1, content.Content.Total);
-            entity.ShouldBeEquivalentTo((TEntity)content.Content.Data[0]);
+            content.Content.ShouldContain(entity);
             return content;
         }
 
@@ -143,18 +154,28 @@ namespace Test.Controllers.Integration
             Assert.Equal(content.RouteName, "DefaultApi");
             Assert.Equal(content.RouteValues["id"], entity.Id);
             Assert.Equal(1, content.Content.Total);
-            entity.ShouldBeEquivalentTo((TEntity)content.Content.Data[0]);
+            content.Content.ShouldContain(entity);
             return content;
+        }
+
+        public static void ShouldContain<TEntity>(this Wrapper wrapper, TEntity entity) where TEntity : Entity
+        {
+            ((TEntity)wrapper.Data[0]).ShouldBeEquivalentTo(entity);
         }
 
         public static void ShouldBeQuasiEquivalentTo<TEntity>(this TEntity subject, TEntity expectation, string reason = "", params object[] reasonArgs) where TEntity : Entity
         {
-            AssertionExtensions.ShouldBeEquivalentTo(subject, expectation, c=>c.Excluding(e=>e.Id).Excluding(e=>e.RowVersion), reason, reasonArgs);
+            AssertionExtensions.ShouldBeEquivalentTo(subject, expectation, c => c.Excluding(e => e.Id).Excluding(e => e.RowVersion).ExcludeNavigationProperties(), reason, reasonArgs);
         }
 
         public static void ShouldBeEquivalentTo<TEntity>(this TEntity subject, TEntity expectation, string reason = "", params object[] reasonArgs) where TEntity : Entity
         {
-            AssertionExtensions.ShouldBeEquivalentTo(subject, expectation, reason, reasonArgs);
+            AssertionExtensions.ShouldBeEquivalentTo(subject, expectation, e=>e.ExcludeNavigationProperties(), reason, reasonArgs);
+        }
+
+        public static EquivalencyAssertionOptions<TSubject> ExcludeNavigationProperties<TSubject>(this EquivalencyAssertionOptions<TSubject> options)
+        {
+            return options.Excluding(s => s.PropertyInfo.PropertyType.IsEntity());
         }
 
         public static IEnumerable<ITestCommand> Repeat(this IEnumerable<ITestCommand> commands, int count)
@@ -324,17 +345,12 @@ namespace Test.Controllers.Integration
         public static TEntity AddAndSave<TEntity>(this DbContext context, params TEntity[] entities) where TEntity : Entity
         {
             var dbSet = context.Set<TEntity>();
-            TEntity entity;
-            if(entities.Length == 1)
+            foreach(var entity in entities)
             {
-                entity = dbSet.Add(entities[0]);
-            }
-            else
-            {
-                entity = dbSet.AddRange(entities).First();
+                dbSet.Add(entity);
             }
             context.SaveChanges();
-            return entity;
+            return entities.First();
         }
 
         public static ProductServiceContext BuildContext(bool createDatabase = true)
