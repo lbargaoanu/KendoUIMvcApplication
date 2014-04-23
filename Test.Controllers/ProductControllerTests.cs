@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using AutoMapper;
 using FluentAssertions;
 using KendoUIMvcApplication;
@@ -10,7 +11,7 @@ namespace Test.Controllers.Integration
 {
     public class ProductControllerTests : ControllerTests<ProductController, Product>
     {
-        public static void Customize(Product entity)
+        public static void Customize(Product entity, ProductServiceContext context)
         {
         }
 

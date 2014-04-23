@@ -1,9 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Data.Entity;
+using System.Web.Http;
 
 namespace KendoUIMvcApplication.Controllers
 {
-    public class ProductController : CrudController<Product>
+    public class ProductController : NorthwindController<Product>
     {
         public ProductController()
         {

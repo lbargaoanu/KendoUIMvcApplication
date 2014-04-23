@@ -121,12 +121,22 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="CategoryControllerTests.cs" />
+    <Compile Include="CustomerControllerTests.cs" />
+    <Compile Include="CustomerDemographicControllerTests.cs" />
+    <Compile Include="EmployeeControllerTests.cs" />
     <Compile Include="Infrastructure\ControllerTests.cs" />
     <Compile Include="Infrastructure\Extensions.cs" />
     <Compile Include="Infrastructure\PrivateReflectionDynamicObject.cs" />
     <Compile Include="Infrastructure\SeedDatabase.cs" />
+    <Compile Include="OrderControllerTests.cs" />
+    <Compile Include="Order_DetailControllerTests.cs" />
     <Compile Include="ProductControllerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RegionControllerTests.cs" />
+    <Compile Include="ShipperControllerTests.cs" />
+    <Compile Include="SupplierControllerTests.cs" />
+    <Compile Include="TerritoryControllerTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

@@ -1,6 +1,6 @@
 
 -- --------------------------------------------------
--- Date Created: 04/15/2014 14:34:10
+-- Date Created: 04/17/2014 15:52:25
 -- compatible SQLite
 -- --------------------------------------------------
 -- Dropping existing tables
@@ -12,8 +12,6 @@ DROP TABLE IF EXISTS [CustomerDemographics];
     
 DROP TABLE IF EXISTS [Customers];
     
-DROP TABLE IF EXISTS [Orders];
-    
 DROP TABLE IF EXISTS [Employees];
     
 DROP TABLE IF EXISTS [Territories];
@@ -22,13 +20,13 @@ DROP TABLE IF EXISTS [Regions];
     
 DROP TABLE IF EXISTS [Order_Detail];
     
-DROP TABLE IF EXISTS [Products];
-    
-DROP TABLE IF EXISTS [Suppliers];
+DROP TABLE IF EXISTS [Orders];
     
 DROP TABLE IF EXISTS [Shippers];
     
-DROP TABLE IF EXISTS [CustomerCustomerDemographics];
+DROP TABLE IF EXISTS [Products];
+    
+DROP TABLE IF EXISTS [Suppliers];
     
 DROP TABLE IF EXISTS [TerritoryEmployees];
 
@@ -56,7 +54,6 @@ CREATE TABLE [CustomerDemographics] (
 -- Creating table 'Customers'
 CREATE TABLE [Customers] (
     [CustomerID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    [CustomerID1] TEXT,
     [CompanyName] TEXT,
     [ContactName] TEXT,
     [ContactTitle] TEXT,
@@ -71,15 +68,79 @@ CREATE TABLE [Customers] (
     [RowVersion] BLOB NOT NULL
 );
 
+-- Creating table 'Employees'
+CREATE TABLE [Employees] (
+    [EmployeeID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    [LastName] TEXT,
+    [FirstName] TEXT,
+    [Title] TEXT,
+    [TitleOfCourtesy] TEXT,
+    [BirthDate] DATETIME,
+    [HireDate] DATETIME,
+    [Address] TEXT,
+    [City] TEXT,
+    [Region] TEXT,
+    [PostalCode] TEXT,
+    [Country] TEXT,
+    [HomePhone] TEXT,
+    [Extension] TEXT,
+    [Photo] BLOB,
+    [Notes] TEXT,
+    [ReportsTo] INTEGER,
+    [PhotoPath] TEXT,
+    [RowVersion] BLOB NOT NULL
+);
+
+-- Creating table 'Territories'
+CREATE TABLE [Territories] (
+    [TerritoryID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    [TerritoryDescription] TEXT,
+    [RegionID] INTEGER NOT NULL,
+    [RowVersion] BLOB NOT NULL
+			
+		,CONSTRAINT [FK_Region_Territories]
+    		FOREIGN KEY ([RegionID])
+    		REFERENCES [Regions] ([RegionID])					
+    		ON DELETE CASCADE
+			);
+
+-- Creating table 'Regions'
+CREATE TABLE [Regions] (
+    [RegionID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    [RegionDescription] TEXT,
+    [RowVersion] BLOB NOT NULL
+);
+
+-- Creating table 'Order_Detail'
+CREATE TABLE [Order_Detail] (
+    [Order_DetailID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    [OrderID] INTEGER NOT NULL,
+    [ProductID] INTEGER NOT NULL,
+    [UnitPrice] REAL NOT NULL,
+    [Quantity] INTEGER NOT NULL,
+    [Discount] REAL NOT NULL,
+    [RowVersion] BLOB NOT NULL
+			
+		,CONSTRAINT [FK_Order_Order_Details]
+    		FOREIGN KEY ([OrderID])
+    		REFERENCES [Orders] ([OrderID])					
+    		ON DELETE CASCADE
+						
+		,CONSTRAINT [FK_Order_Detail_Product]
+    		FOREIGN KEY ([ProductID])
+    		REFERENCES [Products] ([ProductID])					
+    		ON DELETE CASCADE
+			);
+
 -- Creating table 'Orders'
 CREATE TABLE [Orders] (
     [OrderID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     [OrderID1] INTEGER NOT NULL,
     [CustomerID] TEXT,
     [EmployeeID] INTEGER,
-    [OrderDate] BLOB,
-    [RequiredDate] BLOB,
-    [ShippedDate] BLOB,
+    [OrderDate] DATETIME,
+    [RequiredDate] DATETIME,
+    [ShippedDate] DATETIME,
     [ShipVia] INTEGER,
     [Freight] REAL,
     [ShipName] TEXT,
@@ -97,7 +158,7 @@ CREATE TABLE [Orders] (
     		REFERENCES [Customers] ([CustomerID])					
     		
 						
-		,CONSTRAINT [FK_Employee_Orders]
+		,CONSTRAINT [FK_Order_Employee]
     		FOREIGN KEY ([EmployeeID])
     		REFERENCES [Employees] ([EmployeeID])					
     		
@@ -108,77 +169,14 @@ CREATE TABLE [Orders] (
     		
 			);
 
--- Creating table 'Employees'
-CREATE TABLE [Employees] (
-    [EmployeeID] INTEGER NOT NULL,
-    [EmployeeID1] INTEGER NOT NULL,
-    [LastName] TEXT,
-    [FirstName] TEXT,
-    [Title] TEXT,
-    [TitleOfCourtesy] TEXT,
-    [BirthDate] BLOB,
-    [HireDate] BLOB,
-    [Address] TEXT,
-    [City] TEXT,
-    [Region] TEXT,
-    [PostalCode] TEXT,
-    [Country] TEXT,
-    [HomePhone] TEXT,
-    [Extension] TEXT,
-    [Photo] BLOB,
-    [Notes] TEXT,
-    [ReportsTo] INTEGER,
-    [PhotoPath] TEXT,
-    [RowVersion] BLOB NOT NULL
-			
-		,CONSTRAINT [FK_Employee_Employee1]
-    		FOREIGN KEY ([EmployeeID1])
-    		REFERENCES [Employees] ([EmployeeID])					
-    		
-			);
-
--- Creating table 'Territories'
-CREATE TABLE [Territories] (
-    [TerritoryID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    [TerritoryID1] TEXT,
-    [TerritoryDescription] TEXT,
-    [RegionID] INTEGER NOT NULL,
-    [RowVersion] BLOB NOT NULL
-			
-		,CONSTRAINT [FK_Region_Territories]
-    		FOREIGN KEY ([RegionID])
-    		REFERENCES [Regions] ([RegionID])					
-    		ON DELETE CASCADE
-			);
-
--- Creating table 'Regions'
-CREATE TABLE [Regions] (
-    [RegionID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    [RegionID1] INTEGER NOT NULL,
-    [RegionDescription] TEXT,
+-- Creating table 'Shippers'
+CREATE TABLE [Shippers] (
+    [ShipperID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    [ShipperID1] INTEGER NOT NULL,
+    [CompanyName] TEXT,
+    [Phone] TEXT,
     [RowVersion] BLOB NOT NULL
 );
-
--- Creating table 'Order_Detail'
-CREATE TABLE [Order_Detail] (
-    [Order_DetailID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    [OrderID] INTEGER NOT NULL,
-    [ProductID] INTEGER NOT NULL,
-    [UnitPrice] REAL NOT NULL,
-    [Quantity] INTEGER NOT NULL,
-    [Discount] REAL NOT NULL,
-    [RowVersion] BLOB NOT NULL
-			
-		,CONSTRAINT [FK_Order_Detail_Order]
-    		FOREIGN KEY ([OrderID])
-    		REFERENCES [Orders] ([OrderID])					
-    		ON DELETE CASCADE
-						
-		,CONSTRAINT [FK_Order_Detail_Product]
-    		FOREIGN KEY ([ProductID])
-    		REFERENCES [Products] ([ProductID])					
-    		ON DELETE CASCADE
-			);
 
 -- Creating table 'Products'
 CREATE TABLE [Products] (
@@ -221,32 +219,6 @@ CREATE TABLE [Suppliers] (
     [HomePage] TEXT,
     [RowVersion] BLOB NOT NULL
 );
-
--- Creating table 'Shippers'
-CREATE TABLE [Shippers] (
-    [ShipperID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    [ShipperID1] INTEGER NOT NULL,
-    [CompanyName] TEXT,
-    [Phone] TEXT,
-    [RowVersion] BLOB NOT NULL
-);
-
--- Creating table 'CustomerCustomerDemographics'
-CREATE TABLE [CustomerCustomerDemographics] (
-    [Customer_Id] INTEGER NOT NULL,
-    [CustomerDemographic_Id] INTEGER NOT NULL
- , PRIMARY KEY ([Customer_Id], [CustomerDemographic_Id])	
-					
-		,CONSTRAINT [FK_Customer_CustomerDemographics_Source]
-    		FOREIGN KEY ([Customer_Id])
-    		REFERENCES [Customers] ([CustomerID])					
-    		ON DELETE CASCADE
-						
-		,CONSTRAINT [FK_Customer_CustomerDemographics_Target]
-    		FOREIGN KEY ([CustomerDemographic_Id])
-    		REFERENCES [CustomerDemographics] ([CustomerDemographicID])					
-    		ON DELETE CASCADE
-			);
 
 -- Creating table 'TerritoryEmployees'
 CREATE TABLE [TerritoryEmployees] (

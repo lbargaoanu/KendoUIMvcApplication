@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -49,32 +50,32 @@ namespace Test.Controllers.Integration
             return typeof(Entity).IsAssignableFrom(type);
         }
 
-        public static IHttpActionResult PutAndSave<TEntity>(this CrudController<TEntity> controller, TEntity entity) where TEntity : Entity
+        public static IHttpActionResult PutAndSave<TEntity>(this NorthwindController<TEntity> controller, TEntity entity) where TEntity : Entity
         {
             return controller.Action(c => c.Put(entity.Id, entity));
         }
 
-        public static IHttpActionResult PutAndSave<TEntity>(this CrudController<TEntity> controller, int id, TEntity entity) where TEntity : Entity
+        public static IHttpActionResult PutAndSave<TEntity>(this NorthwindController<TEntity> controller, int id, TEntity entity) where TEntity : Entity
         {
             return controller.Action(c => c.Put(id, entity));
         }
 
-        public static IHttpActionResult DeleteAndSave<TEntity>(this CrudController<TEntity> controller, int id) where TEntity : Entity
+        public static IHttpActionResult DeleteAndSave<TEntity>(this NorthwindController<TEntity> controller, int id) where TEntity : Entity
         {
             return controller.Action(c => c.Delete(id));
         }
 
-        public static IHttpActionResult PostAndSave<TEntity>(this CrudController<TEntity> controller, TEntity entity) where TEntity : Entity
+        public static IHttpActionResult PostAndSave<TEntity>(this NorthwindController<TEntity> controller, TEntity entity) where TEntity : Entity
         {
             return controller.Action(c => c.Post(entity));
         }
 
-        public static IQueryable<TEntity> HandleGetAll<TEntity>(this CrudController<TEntity> controller) where TEntity : Entity
+        public static IQueryable<TEntity> HandleGetAll<TEntity>(this NorthwindController<TEntity> controller) where TEntity : Entity
         {
             return controller.Action(c => c.GetAll());
         }
 
-        public static IHttpActionResult HandleGetById<TEntity>(this CrudController<TEntity> controller, int id) where TEntity : Entity
+        public static IHttpActionResult HandleGetById<TEntity>(this NorthwindController<TEntity> controller, int id) where TEntity : Entity
         {
             return controller.Action(c => c.Get(id));
         }
@@ -90,27 +91,27 @@ namespace Test.Controllers.Integration
             return result;
         }
 
-        public static BadRequestResult AssertIsBadRequest(this  IHttpActionResult result)
+        public static BadRequestResult AssertIsBadRequest(this IHttpActionResult result)
         {
             return Assert.IsType<BadRequestResult>(result);
         }
 
-        public static InvalidModelStateResult AssertIsInvalid(this  IHttpActionResult result)
+        public static InvalidModelStateResult AssertIsInvalid(this IHttpActionResult result)
         {
             return Assert.IsType<InvalidModelStateResult>(result);
         }
 
-        public static NotFoundResult AssertIsNotFound(this  IHttpActionResult result)
+        public static NotFoundResult AssertIsNotFound(this IHttpActionResult result)
         {
             return Assert.IsType<NotFoundResult>(result);
         }
 
-        public static OkResult AssertIsOk(this  IHttpActionResult result)
+        public static OkResult AssertIsOk(this IHttpActionResult result)
         {
             return Assert.IsType<OkResult>(result);
         }
 
-        public static OkNegotiatedContentResult<Wrapper> AssertIsOk<TEntity>(this  IHttpActionResult result, TEntity entity) where TEntity : Entity
+        public static OkNegotiatedContentResult<Wrapper> AssertIsOk<TEntity>(this IHttpActionResult result, TEntity entity) where TEntity : Entity
         {
             var content = Assert.IsAssignableFrom<OkNegotiatedContentResult<Wrapper>>(result);
             Assert.Equal(1, content.Content.Total);
@@ -118,7 +119,7 @@ namespace Test.Controllers.Integration
             return content;
         }
 
-        public static CreatedAtRouteNegotiatedContentResult<Wrapper> AssertIsCreatedAtRoute<TEntity>(this  IHttpActionResult result, TEntity entity) where TEntity : Entity
+        public static CreatedAtRouteNegotiatedContentResult<Wrapper> AssertIsCreatedAtRoute<TEntity>(this IHttpActionResult result, TEntity entity) where TEntity : Entity
         {
             var content = Assert.IsAssignableFrom<CreatedAtRouteNegotiatedContentResult<Wrapper>>(result);
             Assert.Equal(content.RouteName, "DefaultApi");
@@ -143,15 +144,35 @@ namespace Test.Controllers.Integration
             AssertionExtensions.ShouldBeEquivalentTo(subject, expectation, e=>e.ExcludeNavigationProperties(), reason, reasonArgs);
         }
 
+        public static void ShouldBeTheSameAs<TEntity>(this IEnumerable<TEntity> subject, IEnumerable<TEntity> expectation) where TEntity : Entity
+        {
+            Assert.Equal(expectation.Select(t => t.Id), subject.Select(t => t.Id));
+        }
+
         public static EquivalencyAssertionOptions<TSubject> ExcludeNavigationProperties<TSubject>(this EquivalencyAssertionOptions<TSubject> options)
         {
-            return options.Excluding(s => s.PropertyInfo.PropertyType.IsEntity());
+            return options.Excluding(s => s.PropertyInfo.PropertyType.IsNavigationProperty());
+        }
+
+        public static bool IsNavigationProperty(this Type type)
+        {
+            return type.IsEntity() || type.IsEntityCollection();
+        }
+
+        public static bool IsEntityCollection(this Type type)
+        {
+            return type != typeof(string) && !type.IsArray && typeof(IEnumerable).IsAssignableFrom(type);
         }
 
         public static IEnumerable<ITestCommand> Repeat(this IEnumerable<ITestCommand> commands, int count)
         {
             var result = commands.SelectMany(tc => Enumerable.Repeat(tc, count));
-            foreach(var command in result)
+            return (count == 1) ? result : result.RepeatCore(count);
+        }
+
+        public static IEnumerable<ITestCommand> RepeatCore(this IEnumerable<ITestCommand> commands, int count)
+        {
+            foreach(var command in commands)
             {
                 var theoryCommand = command as TheoryCommand;
                 if(theoryCommand != null && theoryCommand.Parameters != null)
@@ -250,13 +271,6 @@ namespace Test.Controllers.Integration
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.Properties<byte[]>().Configure(c => c.HasColumnType("BLOB").HasDatabaseGeneratedOption(DatabaseGeneratedOption.None));
-            modelBuilder.Types().Configure(c =>
-            {
-                if(Mapper.FindTypeMapFor(c.ClrType, c.ClrType) == null)
-                {
-                    Mapper.CreateMap(c.ClrType, c.ClrType);//.ForMember("Id", p => p.Ignore()).ForMember("RowVersion", p => p.Ignore());
-                }
-            });
         }
 
         public override int SaveChanges()
@@ -300,7 +314,7 @@ namespace Test.Controllers.Integration
         }
     }
 
-    static partial class ContextHelper
+    public static partial class ContextHelper
     {
         private static string[] IntegerTypes = new[] { "int", "bigint", "smallint", "tinyint", "bit" };
         private static string[] RealTypes = new[] { "double", "decimal", "float", "real" };
@@ -339,7 +353,8 @@ namespace Test.Controllers.Integration
             result = context.Database.ExecuteSqlCommand("PRAGMA foreign_keys = ON;");
             Assert.Equal(0, result);
 
-            SeedDatabase(context);
+            var fixture = MyAutoDataAttribute.CreateFixture();
+            SeedDatabase(context, fixture);
 
             context.SaveChanges();
 
@@ -373,7 +388,7 @@ namespace Test.Controllers.Integration
                     {
                         return "TEXT";
                     }
-                    var typeName = edmType.Name;
+                    var typeName = edmType.Name.ToLower();
                     if(IntegerTypes.Contains(typeName))
                     {
                         return "INTEGER";
@@ -382,11 +397,11 @@ namespace Test.Controllers.Integration
                     {
                         return "REAL";
                     }
-                    else if(typeName == "Guid")
+                    else if(typeName == "guid")
                     {
                         return "UNIQUEIDENTIFIER";
                     }
-                    else if(typeName == "DateTime" || typeName == "DateTimeOffset")
+                    else if(typeName == "datetime" || typeName == "datetimeoffset")
                     {
                         return "DATETIME";
                     }
@@ -426,7 +441,8 @@ namespace Test.Controllers.Integration
             if(customizeMethod != null)
             {
                 var entityType = reflectedType.BaseType.GenericTypeArguments[1];
-                foreach(var parameter in data.First().Where(p => p != null && p.GetType() == entityType))
+                var methodParameters = data.First();
+                foreach(var parameter in methodParameters.Where(p => p != null && p.GetType() == entityType))
                 {
                     customizeMethod.Invoke(null, new[] { parameter });
                 }
@@ -436,7 +452,10 @@ namespace Test.Controllers.Integration
 
         public static IFixture CreateFixture()
         {
-            return new Fixture().Customize(new MyCustomization()).Customize(new AutoMoqCustomization());
+            var fixture = new Fixture().Customize(new MyCustomization()).Customize(new AutoMoqCustomization());
+            fixture.Behaviors.Remove(fixture.Behaviors.OfType<ThrowingRecursionBehavior>().First());
+            fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            return fixture;
         }
     }
 
@@ -454,11 +473,17 @@ namespace Test.Controllers.Integration
             var pi = request as PropertyInfo;
             if(pi != null)
             {
-                if(pi.PropertyType.IsEntity())
+                var type = pi.PropertyType;
+                if(type.IsEntity())
                 {
                     return null;
                 }
-                else if((pi.PropertyType == typeof(int?) || pi.PropertyType == typeof(int)) && pi.Name.EndsWith("ID") && pi.Name.Length > 2)
+                else if(type.IsEntityCollection())
+                {
+                    var entityType = type.GenericTypeArguments[0];
+                    return Activator.CreateInstance(typeof(HashSet<>).MakeGenericType(entityType));
+                }
+                else if((type == typeof(int?) || type == typeof(int)) && pi.Name.EndsWith("ID") && pi.Name.Length > 2)
                 {
                     return 1;
                 }

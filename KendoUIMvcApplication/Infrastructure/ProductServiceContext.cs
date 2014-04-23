@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Data.Common;
 using System.Data.Entity.Core.Objects;
 using System.Data.Entity.Infrastructure;
+using AutoMapper;
 
 namespace KendoUIMvcApplication
 {
@@ -52,7 +53,14 @@ namespace KendoUIMvcApplication
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            modelBuilder.Types().Configure(c => c.Property("Id").HasColumnName(c.ClrType.Name+"ID"));
+            modelBuilder.Types().Configure(c =>
+            {
+                c.Property("Id").HasColumnName(c.ClrType.Name + "ID");
+                if(Mapper.FindTypeMapFor(c.ClrType, c.ClrType) == null)
+                {
+                    Mapper.CreateMap(c.ClrType, c.ClrType);//.ForMember("Id", p => p.Ignore()).ForMember("RowVersion", p => p.Ignore());
+                }
+            });
         }
 
         public virtual DbSet<Category> Categories { get; set; }

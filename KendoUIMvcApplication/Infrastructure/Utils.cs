@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Net.Http;
@@ -12,6 +14,30 @@ namespace KendoUIMvcApplication
 {
     public static class Utils
     {
+        public static void Set<TEntity>(this ICollection<TEntity> children, params int[] ids) where TEntity : Entity, new()
+        {
+            children.Set(null, ids);
+        }
+
+        public static void Set<TEntity>(this ICollection<TEntity> children, DbContext context, params int[] ids) where TEntity : Entity, new()
+        {
+            if(ids.Length == 0)
+            {
+                ids = children.Select(e => e.Id).ToArray();
+            }
+            children.Clear();
+            foreach(int childId in ids)
+            {
+                var child = (context == null) ? new TEntity{ Id = childId } : context.Set<TEntity>().Find(childId);
+                children.Add(child);
+            }
+        }
+
+        public static TEntity GetWithInclude<TEntity, TChild>(this DbSet<TEntity> dbSet, int id, Expression<Func<TEntity, TChild>> path) where TEntity : Entity
+        {
+            return dbSet.Where(e => e.Id == id).Include(path).Single();
+        }
+
         public static bool IsNullOrEmpty(this string value)
         {
             return string.IsNullOrEmpty(value);

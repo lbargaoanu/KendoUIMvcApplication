@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -11,8 +12,28 @@ using StructureMap.Attributes;
 
 namespace KendoUIMvcApplication
 {
-    public class CrudController<TEntity> : BaseController where TEntity : Entity
+    public class NorthwindController<TEntity> : CrudController<ProductServiceContext, TEntity> where TEntity : Entity
     {
+    }
+
+    public class CrudController<TContext, TEntity> : BaseController where TEntity : Entity where TContext : DbContext
+    {
+        public new TContext Context
+        {
+            get
+            {
+                return (TContext)base.Context;
+            }
+        }
+
+        protected void SetRowVersion(TEntity entity, TEntity existingEntity)
+        {
+            if(entity.RowVersion != existingEntity.RowVersion)
+            {
+                Context.Entry(existingEntity).Property(e => e.RowVersion).OriginalValue = entity.RowVersion;
+            }
+        }
+
         [NonAction]
         public virtual IQueryable<TEntity> Include(IQueryable<TEntity> entities)
         {
@@ -57,7 +78,7 @@ namespace KendoUIMvcApplication
                 Modify(entity);
                 Context.SaveChanges();
             }
-            catch(DbUpdateConcurrencyException)
+            catch(Exception)
             {
                 Context.Entry(entity).State = EntityState.Detached;
                 if(!Exists(id))

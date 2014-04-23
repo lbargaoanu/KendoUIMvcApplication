@@ -7,38 +7,38 @@ using Xunit;
 
 namespace Test.Controllers.Integration
 {
-    public abstract class ControllerTests<TController, TEntity> where TController : CrudController<TEntity>, new() where TEntity : Entity
+    public abstract class ControllerTests<TController, TEntity> where TController : NorthwindController<TEntity>, new() where TEntity : Entity
     {
-        [RepeatTheory(100), MyAutoData]
-        public virtual void ShouldDelete(TEntity entity, ProductServiceContext createContext, ProductServiceContext readContext)
+        [RepeatTheory(1), MyAutoData]
+        public virtual void ShouldDelete(TEntity newEntity, ProductServiceContext createContext, ProductServiceContext readContext)
         {
             // arrange
-            createContext.AddAndSave(entity);
+            createContext.AddAndSave(newEntity);
             // act
-            var result = new TController().DeleteAndSave(entity.Id);
+            var result = new TController().DeleteAndSave(newEntity.Id);
             // assert
             result.AssertIsOk();
-            Assert.Null(readContext.Set<TEntity>().Find(entity.Id));
+            Assert.Null(readContext.Set<TEntity>().Find(newEntity.Id));
         }
 
-        [RepeatFact(100)]
+        [RepeatFact(1)]
         public virtual void ShouldNotDeleteNotExisting()
         {
             new TController().DeleteAndSave(0).AssertIsNotFound();
         }
 
-        [RepeatTheory(100), MyAutoData]
-        public virtual void ShouldAdd(TEntity entity, ProductServiceContext readContext)
+        [RepeatTheory(1), MyAutoData]
+        public virtual void ShouldAdd(TEntity newEntity, ProductServiceContext readContext)
         {
             // act
-            var result = new TController().PostAndSave(entity);
+            var result = new TController().PostAndSave(newEntity);
             // assert
-            result.AssertIsCreatedAtRoute(entity);
+            result.AssertIsCreatedAtRoute(newEntity);
             var entities = readContext.Set<TEntity>();
-            entities.Find(entity.Id).ShouldBeEquivalentTo(entity);
+            entities.Find(newEntity.Id).ShouldBeEquivalentTo(newEntity);
         }
 
-        [RepeatTheory(100), MyAutoData]
+        [RepeatTheory(1), MyAutoData]
         public virtual void ShouldGetAll(TEntity[] newEntities, ProductServiceContext createContext)
         {
             // arrange
@@ -49,18 +49,18 @@ namespace Test.Controllers.Integration
             response.Count().Should().BeGreaterOrEqualTo(newEntities.Length, "Se poate sa avem date din alte teste.");
         }
 
-        [RepeatTheory(100), MyAutoData]
-        public virtual void ShouldGetById(TEntity entity, ProductServiceContext createContext)
+        [RepeatTheory(1), MyAutoData]
+        public virtual void ShouldGetById(TEntity newEntity, ProductServiceContext createContext)
         {
             // arrange
-            createContext.AddAndSave(entity);
+            createContext.AddAndSave(newEntity);
             // act
-            var response = new TController().HandleGetById(entity.Id);
+            var response = new TController().HandleGetById(newEntity.Id);
             // assert
-            response.AssertIsOk(entity);
+            response.AssertIsOk(newEntity);
         }
 
-        [RepeatTheory(100), MyAutoData]
+        [RepeatTheory(1), MyAutoData]
         public virtual void ShouldNotGetByNonExistingId()
         {
             // act
@@ -69,25 +69,25 @@ namespace Test.Controllers.Integration
             response.AssertIsNotFound();
         }
 
-        [RepeatTheory(100), MyAutoData]
-        public virtual void ShouldModify(TEntity entity, TEntity modified, ProductServiceContext createContext, ProductServiceContext readContext)
+        [RepeatTheory(1), MyAutoData]
+        public virtual void ShouldModify(TEntity newEntity, TEntity modified, ProductServiceContext createContext, ProductServiceContext readContext)
         {
             // arrange
-            createContext.AddAndSave(entity);
-            modified.Id = entity.Id;
-            modified.RowVersion = entity.RowVersion;
-            Mapper.Map(modified, entity);
+            createContext.AddAndSave(newEntity);
+            modified.Id = newEntity.Id;
+            modified.RowVersion = newEntity.RowVersion;
+            Mapper.Map(modified, newEntity);
             var controller = new TController();
             // act
-            var response = controller.PutAndSave(entity);
+            var response = controller.PutAndSave(newEntity);
             // assert
-            response.AssertIsOk(entity);
+            response.AssertIsOk(newEntity);
             var entities = readContext.Set<TEntity>();
-            entity = controller.Include(entities).Single(p => p.Id == entity.Id);
-            entity.ShouldBeQuasiEquivalentTo(modified);
+            newEntity = controller.Include(entities).Single(p => p.Id == newEntity.Id);
+            newEntity.ShouldBeQuasiEquivalentTo(modified);
         }
 
-        [RepeatTheory(100), MyAutoData]
+        [RepeatTheory(1), MyAutoData]
         public virtual void ShouldNotModifyId(int id, TEntity modified)
         {
             // act
@@ -96,7 +96,7 @@ namespace Test.Controllers.Integration
             response.AssertIsBadRequest();
         }
 
-        [RepeatTheory(100), MyAutoData]
+        [RepeatTheory(1), MyAutoData]
         public virtual void ShouldNotModifyNotExisting(TEntity entity)
         {
             // arrange
@@ -107,12 +107,12 @@ namespace Test.Controllers.Integration
             response.AssertIsNotFound();
         }
 
-        [RepeatTheory(100), MyAutoData]
-        public virtual void ShouldNotModifyConcurrent(TEntity entity, ProductServiceContext createContext, ProductServiceContext modifyContext)
+        [RepeatTheory(1), MyAutoData]
+        public virtual void ShouldNotModifyConcurrent(TEntity entity, ProductServiceContext createContext, ProductServiceContext modifyContext, byte[] rowVersion)
         {
             // arrange
             createContext.AddAndSave(entity);
-            modifyContext.Set<TEntity>().Find(entity.Id).RowVersion = new byte[] { 1, 2, 3 };
+            modifyContext.Set<TEntity>().Find(entity.Id).RowVersion = rowVersion;
             modifyContext.SaveChanges();
             // act & assert
             Assert.Throws<DbUpdateConcurrencyException>(()=>new TController().PutAndSave(entity));

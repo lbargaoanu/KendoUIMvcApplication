@@ -18,9 +18,9 @@ private static object Init()
 {
     var section = ConfigurationManager.GetSection("system.data") as DataSet;
 	var providers = section.Tables["DbProviderFactories"].Rows;
-    if(providers.Find(DbResolver.Name) == null)
+    if(providers.Find(DbResolver.ProviderName) == null)
     {
-		providers.Add(DbResolver.Name, DbResolver.Name, DbResolver.Name, DbResolver.FactoryName);
+		providers.Add(DbResolver.ProviderName, DbResolver.ProviderName, DbResolver.ProviderName, DbResolver.FactoryName);
 	}
 	return new TemplateDbConfiguration();
 }
@@ -31,7 +31,7 @@ public class TemplateDbConfiguration : DbConfiguration
 {
     public TemplateDbConfiguration()
     {
-		SetProviderServices(DbResolver.Name, DbResolver.Provider);
+		SetProviderServices(DbResolver.ProviderName, DbResolver.Provider);
 		var resolver = new DbResolver();
 		var internalResolver = DependencyResolver.AsDynamic().First;
 		internalResolver.Add(resolver);

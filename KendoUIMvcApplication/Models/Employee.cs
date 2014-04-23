@@ -16,12 +16,12 @@ namespace KendoUIMvcApplication
     {
         public Employee()
         {
-            this.Employees1 = new HashSet<Employee>();
-            this.Orders = new HashSet<Order>();
+            //this.Employees1 = new HashSet<Employee>();
+            //this.Orders = new HashSet<Order>();
             this.Territories = new HashSet<Territory>();
         }
     
-        public int EmployeeID { get; set; }
+        //public int EmployeeID { get; set; }
         public string LastName { get; set; }
         public string FirstName { get; set; }
         public string Title { get; set; }
@@ -40,9 +40,9 @@ namespace KendoUIMvcApplication
         public Nullable<int> ReportsTo { get; set; }
         public string PhotoPath { get; set; }
     
-        public virtual ICollection<Employee> Employees1 { get; set; }
-        public virtual Employee Employee1 { get; set; }
-        public virtual ICollection<Order> Orders { get; set; }
+        //public virtual ICollection<Employee> Employees1 { get; set; }
+        //public virtual Employee Employee1 { get; set; }
+        //public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<Territory> Territories { get; set; }
     }
 }
