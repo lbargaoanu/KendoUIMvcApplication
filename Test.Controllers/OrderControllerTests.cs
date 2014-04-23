@@ -19,7 +19,7 @@ namespace Test.Controllers.Integration
             base.ShouldAdd(newEntity, readContext);
 
             var found = readContext.Orders.GetWithInclude(newEntity.Id, o => o.OrderDetails);
-            found.OrderDetails.ShouldHaveTheSameIds(details);
+            found.OrderDetails.ShouldHaveTheSameIdsAs(details);
         }
 
         [RepeatTheory(1), MyAutoData]
@@ -64,7 +64,7 @@ namespace Test.Controllers.Integration
 
             createContext.OrderDetails.Count().Should().Be(detailsCount, "nothing should be inserted in FK tables");
             var found = readContext.Orders.GetWithInclude(newEntity.Id, o => o.OrderDetails);
-            found.OrderDetails.ShouldHaveTheSameIds(modifiedDetails);
+            found.OrderDetails.ShouldHaveTheSameIdsAs(modifiedDetails);
             found.OrderDetails.ShouldAllBeQuasiEquivalentTo(modifiedDetails);
         }
     }
