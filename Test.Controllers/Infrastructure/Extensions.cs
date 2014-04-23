@@ -159,7 +159,7 @@ namespace Test.Controllers.Integration
             AssertionExtensions.ShouldBeEquivalentTo(subject, expectation, e=>e.ExcludeNavigationProperties(), reason, reasonArgs);
         }
 
-        public static void ShouldBeTheSameAs<TEntity>(this IEnumerable<TEntity> subject, IEnumerable<TEntity> expectation) where TEntity : Entity
+        public static void ShouldHaveTheSameIds<TEntity>(this IEnumerable<TEntity> subject, IEnumerable<TEntity> expectation) where TEntity : Entity
         {
             Assert.Equal(expectation.OrderBy(t=>t.Id).Select(t => t.Id), subject.OrderBy(t=>t.Id).Select(t => t.Id));
         }

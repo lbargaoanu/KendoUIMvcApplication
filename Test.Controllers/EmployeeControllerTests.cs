@@ -39,7 +39,7 @@ namespace Test.Controllers.Integration
         private static void AssertTerritories(int id, Employee expectation, ProductServiceContext readContext, int territoryCount)
         {
             var found = readContext.Employees.GetWithInclude(id, e => e.Territories);
-            found.Territories.ShouldBeTheSameAs(expectation.Territories);
+            found.Territories.ShouldHaveTheSameIds(expectation.Territories);
             readContext.Territories.Count().Should().Be(territoryCount, "nothing should be inserted in FK tables");
         }
     }

@@ -19,7 +19,7 @@ namespace Test.Controllers.Integration
             base.ShouldAdd(newEntity, readContext);
 
             var found = readContext.Orders.GetWithInclude(newEntity.Id, o => o.OrderDetails);
-            found.OrderDetails.ShouldBeTheSameAs(details);
+            found.OrderDetails.ShouldHaveTheSameIds(details);
         }
 
         [RepeatTheory(1), MyAutoData]
@@ -35,6 +35,36 @@ namespace Test.Controllers.Integration
                 detail.OrderID = newEntity.Id;
             }
             var found = readContext.Orders.GetWithInclude(newEntity.Id, o => o.OrderDetails);
+            found.OrderDetails.ShouldAllBeQuasiEquivalentTo(modifiedDetails);
+        }
+
+        [RepeatTheory(1), MyAutoData]
+        public void ShouldModifyJustDetails(Order newEntity, OrderDetail[] newDetails, Order modified, OrderDetail[] modifiedDetails, ProductServiceContext createContext, ProductServiceContext readContext)
+        {
+            // arrange
+            newEntity.OrderDetails.Add(newDetails);
+            createContext.AddAndSave(newEntity);
+            foreach(var detail in modifiedDetails)
+            {
+                detail.OrderID = newEntity.Id;
+            }
+            var detailsCount = createContext.OrderDetails.Count();
+            modified.Id = newEntity.Id;
+            modified.RowVersion = newEntity.RowVersion;
+            modified.OrderDetails.Add(modifiedDetails);
+            for(int index = 0; index < modifiedDetails.Length; index++)
+            {
+                modifiedDetails[index].Id = newDetails[index].Id;
+            }
+            Mapper.Map(modified, newEntity);
+            // act
+            var response = new OrderController().PutAndSave(newEntity);
+            // assert
+            response.AssertIsOk(newEntity);
+
+            createContext.OrderDetails.Count().Should().Be(detailsCount, "nothing should be inserted in FK tables");
+            var found = readContext.Orders.GetWithInclude(newEntity.Id, o => o.OrderDetails);
+            found.OrderDetails.ShouldHaveTheSameIds(modifiedDetails);
             found.OrderDetails.ShouldAllBeQuasiEquivalentTo(modifiedDetails);
         }
     }
