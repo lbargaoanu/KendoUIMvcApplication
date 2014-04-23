@@ -5,7 +5,7 @@ using System.Web.Http;
 
 namespace KendoUIMvcApplication.Controllers
 {
-    public class Order_DetailController : NorthwindController<Order_Detail>
+    public class OrderDetailController : NorthwindController<OrderDetail>
     {
     }
 }

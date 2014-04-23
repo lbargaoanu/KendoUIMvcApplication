@@ -156,7 +156,7 @@
     <Compile Include="Controllers\CustomerDemographicController.cs" />
     <Compile Include="Controllers\EmployeeController.cs" />
     <Compile Include="Controllers\OrderController.cs" />
-    <Compile Include="Controllers\Order_DetailController.cs" />
+    <Compile Include="Controllers\OrderDetailController.cs" />
     <Compile Include="Controllers\RegionController.cs" />
     <Compile Include="Controllers\ShipperController.cs" />
     <Compile Include="Controllers\SupplierController.cs" />
@@ -188,7 +188,7 @@
     <Compile Include="Models\Employee_Sales_by_Country_Result.cs" />
     <Compile Include="Models\Northwind.Context.cs" />
     <Compile Include="Models\Order.cs" />
-    <Compile Include="Models\Order_Detail.cs" />
+    <Compile Include="Models\OrderDetail.cs" />
     <Compile Include="Models\Product.cs" />
     <Compile Include="Models\Region.cs" />
     <Compile Include="Models\SalesByCategory_Result.cs" />

@@ -35,6 +35,11 @@ namespace Test.Controllers.Integration
     {
         private static readonly ProductServiceContext dbContext = ContextHelper.BuildContext();
 
+        public static bool IsInt(this Type type)
+        {
+            return type == typeof(int?) || type == typeof(int);
+        }
+
         public static void HandleAndSave<TCommand>(this CommandHandler<ProductServiceContext, TCommand> handler, TCommand command) where TCommand : ICommand
         {
             if(handler.Context == null)
@@ -134,9 +139,19 @@ namespace Test.Controllers.Integration
             ((TEntity)wrapper.Data[0]).ShouldBeEquivalentTo(entity);
         }
 
+        public static void ShouldAllBeQuasiEquivalentTo<TEntity>(this IEnumerable<TEntity> subject, IEnumerable<TEntity> expectation, string reason = "", params object[] reasonArgs) where TEntity : Entity
+        {
+            subject.ShouldAllBeEquivalentTo(expectation, ExcludeInfrastructure<TEntity>(), reason, reasonArgs);
+        }
+
         public static void ShouldBeQuasiEquivalentTo<TEntity>(this TEntity subject, TEntity expectation, string reason = "", params object[] reasonArgs) where TEntity : Entity
         {
-            AssertionExtensions.ShouldBeEquivalentTo(subject, expectation, c => c.Excluding(e => e.Id).Excluding(e => e.RowVersion).ExcludeNavigationProperties(), reason, reasonArgs);
+            AssertionExtensions.ShouldBeEquivalentTo(subject, expectation, ExcludeInfrastructure<TEntity>(), reason, reasonArgs);
+        }
+
+        private static Func<EquivalencyAssertionOptions<TEntity>, EquivalencyAssertionOptions<TEntity>> ExcludeInfrastructure<TEntity>() where TEntity : Entity
+        {
+            return c => c.Excluding(e => e.Id).Excluding(e => e.RowVersion).ExcludeNavigationProperties();
         }
 
         public static void ShouldBeEquivalentTo<TEntity>(this TEntity subject, TEntity expectation, string reason = "", params object[] reasonArgs) where TEntity : Entity
@@ -146,7 +161,7 @@ namespace Test.Controllers.Integration
 
         public static void ShouldBeTheSameAs<TEntity>(this IEnumerable<TEntity> subject, IEnumerable<TEntity> expectation) where TEntity : Entity
         {
-            Assert.Equal(expectation.Select(t => t.Id), subject.Select(t => t.Id));
+            Assert.Equal(expectation.OrderBy(t=>t.Id).Select(t => t.Id), subject.OrderBy(t=>t.Id).Select(t => t.Id));
         }
 
         public static EquivalencyAssertionOptions<TSubject> ExcludeNavigationProperties<TSubject>(this EquivalencyAssertionOptions<TSubject> options)
@@ -353,7 +368,7 @@ namespace Test.Controllers.Integration
             result = context.Database.ExecuteSqlCommand("PRAGMA foreign_keys = ON;");
             Assert.Equal(0, result);
 
-            var fixture = MyAutoDataAttribute.CreateFixture();
+            var fixture = CreateFixture();
             SeedDatabase(context, fixture);
 
             context.SaveChanges();
@@ -409,13 +424,21 @@ namespace Test.Controllers.Integration
             }
             return "BLOB";
         }
+
+        public static IFixture CreateFixture()
+        {
+            var fixture = new Fixture().Customize(new MyCustomization()).Customize(new AutoMoqCustomization());
+            fixture.Behaviors.Remove(fixture.Behaviors.OfType<ThrowingRecursionBehavior>().First());
+            fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            return fixture;
+        }
     }
 
     public class MyAutoDataAttribute : AutoDataAttribute
     {
         private static ConcurrentDictionary<Type, MethodInfo> customizeMethods = new ConcurrentDictionary<Type, MethodInfo>();
 
-        public MyAutoDataAttribute() : base(CreateFixture())
+        public MyAutoDataAttribute() : base(ContextHelper.CreateFixture())
         {
         }
 
@@ -449,14 +472,6 @@ namespace Test.Controllers.Integration
             }
             return data;
         }
-
-        public static IFixture CreateFixture()
-        {
-            var fixture = new Fixture().Customize(new MyCustomization()).Customize(new AutoMoqCustomization());
-            fixture.Behaviors.Remove(fixture.Behaviors.OfType<ThrowingRecursionBehavior>().First());
-            fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-            return fixture;
-        }
     }
 
     public class MyCustomization : ICustomization, ISpecimenBuilder
@@ -483,9 +498,16 @@ namespace Test.Controllers.Integration
                     var entityType = type.GenericTypeArguments[0];
                     return Activator.CreateInstance(typeof(HashSet<>).MakeGenericType(entityType));
                 }
-                else if((type == typeof(int?) || type == typeof(int)) && pi.Name.EndsWith("ID") && pi.Name.Length > 2)
+                else if(type.IsInt())
                 {
-                    return 1;
+                    if(pi.Name == "Id")
+                    {
+                        return 0;
+                    }
+                    else if(pi.Name.EndsWith("ID") && pi.Name.Length > 2)
+                    {
+                        return 1;
+                    }
                 }
             }
             return new NoSpecimen(request);

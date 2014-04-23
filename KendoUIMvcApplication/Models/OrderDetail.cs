@@ -12,7 +12,7 @@ namespace KendoUIMvcApplication
     using System;
     using System.Collections.Generic;
     
-    public partial class Order_Detail : Entity
+    public partial class OrderDetail : Entity
     {
         public int OrderID { get; set; }
         public int ProductID { get; set; }

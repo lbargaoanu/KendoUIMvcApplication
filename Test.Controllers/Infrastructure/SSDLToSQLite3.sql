@@ -1,6 +1,6 @@
 
 -- --------------------------------------------------
--- Date Created: 04/17/2014 15:52:25
+-- Date Created: 04/23/2014 15:13:06
 -- compatible SQLite
 -- --------------------------------------------------
 -- Dropping existing tables
@@ -18,7 +18,7 @@ DROP TABLE IF EXISTS [Territories];
     
 DROP TABLE IF EXISTS [Regions];
     
-DROP TABLE IF EXISTS [Order_Detail];
+DROP TABLE IF EXISTS [OrderDetails];
     
 DROP TABLE IF EXISTS [Orders];
     
@@ -111,9 +111,9 @@ CREATE TABLE [Regions] (
     [RowVersion] BLOB NOT NULL
 );
 
--- Creating table 'Order_Detail'
-CREATE TABLE [Order_Detail] (
-    [Order_DetailID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+-- Creating table 'OrderDetails'
+CREATE TABLE [OrderDetails] (
+    [OrderDetailID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     [OrderID] INTEGER NOT NULL,
     [ProductID] INTEGER NOT NULL,
     [UnitPrice] REAL NOT NULL,
@@ -121,12 +121,12 @@ CREATE TABLE [Order_Detail] (
     [Discount] REAL NOT NULL,
     [RowVersion] BLOB NOT NULL
 			
-		,CONSTRAINT [FK_Order_Order_Details]
+		,CONSTRAINT [FK_Order_OrderDetails]
     		FOREIGN KEY ([OrderID])
     		REFERENCES [Orders] ([OrderID])					
     		ON DELETE CASCADE
 						
-		,CONSTRAINT [FK_Order_Detail_Product]
+		,CONSTRAINT [FK_OrderDetail_Product]
     		FOREIGN KEY ([ProductID])
     		REFERENCES [Products] ([ProductID])					
     		ON DELETE CASCADE
@@ -136,7 +136,7 @@ CREATE TABLE [Order_Detail] (
 CREATE TABLE [Orders] (
     [OrderID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     [OrderID1] INTEGER NOT NULL,
-    [CustomerID] TEXT,
+    [CustomerID] INTEGER NOT NULL,
     [EmployeeID] INTEGER,
     [OrderDate] DATETIME,
     [RequiredDate] DATETIME,
@@ -150,13 +150,12 @@ CREATE TABLE [Orders] (
     [ShipPostalCode] TEXT,
     [ShipCountry] TEXT,
     [RowVersion] BLOB NOT NULL,
-    [Customer_Id] INTEGER,
     [Shipper_Id] INTEGER
 			
 		,CONSTRAINT [FK_Order_Customer]
-    		FOREIGN KEY ([Customer_Id])
+    		FOREIGN KEY ([CustomerID])
     		REFERENCES [Customers] ([CustomerID])					
-    		
+    		ON DELETE CASCADE
 						
 		,CONSTRAINT [FK_Order_Employee]
     		FOREIGN KEY ([EmployeeID])

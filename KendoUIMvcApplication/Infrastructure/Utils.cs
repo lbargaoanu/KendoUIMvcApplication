@@ -14,6 +14,14 @@ namespace KendoUIMvcApplication
 {
     public static class Utils
     {
+        public static void Add<T>(this ICollection<T> collection, IEnumerable<T> newItems)
+        {
+            foreach(var item in newItems)
+            {
+                collection.Add(item);
+            }
+        }
+
         public static void Set<TEntity>(this ICollection<TEntity> children, params int[] ids) where TEntity : Entity, new()
         {
             children.Set(null, ids);
@@ -21,11 +29,16 @@ namespace KendoUIMvcApplication
 
         public static void Set<TEntity>(this ICollection<TEntity> children, DbContext context, params int[] ids) where TEntity : Entity, new()
         {
+            TEntity[] existingChildren;
             if(ids.Length == 0)
             {
-                ids = children.Select(e => e.Id).ToArray();
+                existingChildren = children.Where(e => e.Id > 0).ToArray();
+                foreach(var child in existingChildren)
+                {
+                    children.Remove(child);
+                }
+                ids = existingChildren.Select(e => e.Id).ToArray();
             }
-            children.Clear();
             foreach(int childId in ids)
             {
                 var child = (context == null) ? new TEntity{ Id = childId } : context.Set<TEntity>().Find(childId);

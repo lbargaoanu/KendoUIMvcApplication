@@ -16,11 +16,11 @@ namespace KendoUIMvcApplication
     {
         public Order()
         {
-            this.Order_Details = new HashSet<Order_Detail>();
+            this.OrderDetails = new HashSet<OrderDetail>();
         }
     
         public int OrderID { get; set; }
-        public string CustomerID { get; set; }
+        public int CustomerID { get; set; }
         public Nullable<int> EmployeeID { get; set; }
         public Nullable<System.DateTime> OrderDate { get; set; }
         public Nullable<System.DateTime> RequiredDate { get; set; }
@@ -36,7 +36,7 @@ namespace KendoUIMvcApplication
     
         public virtual Customer Customer { get; set; }
         public virtual Employee Employee { get; set; }
-        public virtual ICollection<Order_Detail> Order_Details { get; set; }
+        public virtual ICollection<OrderDetail> OrderDetails { get; set; }
         public virtual Shipper Shipper { get; set; }
     }
 }
