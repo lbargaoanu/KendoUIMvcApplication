@@ -15,7 +15,7 @@ namespace Test.Controllers.Integration
         {
         }
 
-        //[RepeatTheory(1), MyAutoData]
+        //[Theory, MyAutoData]
         //public override void ShouldModify(Product modified, ProductServiceContext createContext, ProductServiceContext readContext)
         //{
         //    //createContext.AddAndSave(modified.Category);
@@ -25,7 +25,7 @@ namespace Test.Controllers.Integration
         //    base.ShouldModify(modified, createContext, readContext);
         //}
 
-        //[RepeatTheory(1), MyAutoData]
+        //[Theory, MyAutoData]
         //public void ShouldReturnAllProducts(Product[] products, ProductServiceContext createContext, AllProductsHandler handler)
         //{
         //    // arrange
@@ -37,7 +37,7 @@ namespace Test.Controllers.Integration
         //    response.Data.Count().Should().BeGreaterOrEqualTo(count, "Se poate sa avem date din alte teste.");
         //}
 
-        //[RepeatTheory(1), MyAutoData]
+        //[Theory, MyAutoData]
         //public void ShouldModifyTheProduct(Product modified, ProductServiceContext createContext, ProductServiceContext readContext)
         //{
         //    // arrange
@@ -53,7 +53,7 @@ namespace Test.Controllers.Integration
 
         //public class DeleteProduct
         //{
-        //    [RepeatTheory(1), MyAutoData]
+        //    [Theory, MyAutoData]
         //    public void ShouldDeleteTheProduct(ProductServiceContext createContext, ProductServiceContext readContext)
         //    {
         //        // arrange
@@ -65,7 +65,7 @@ namespace Test.Controllers.Integration
         //        Assert.Null(readContext.Products.Find(product.Id));
         //    }
 
-        //    [RepeatFact(1)]
+        //    [Fact]
         //    public void ShouldDetectNotExistingProduct()
         //    {
         //        new ProductController().DeleteAndSave(0).AssertIsNotFound();
@@ -74,7 +74,7 @@ namespace Test.Controllers.Integration
 
         //public class AddProduct
         //{
-        //    [RepeatTheory(1), MyAutoData]
+        //    [Theory, MyAutoData]
         //    public void ShouldAddTheProduct(ProductServiceContext readContext)
         //    {
         //        // arrange

@@ -11,7 +11,7 @@ namespace Test.Controllers.Integration
 {
     public class OrderControllerTests : ControllerTests<OrderController, Order>
     {
-        [RepeatTheory(1), MyAutoData]
+        [Theory, MyAutoData]
         public void ShouldAddWithDetails(Order newEntity, OrderDetail[] details, ProductServiceContext readContext)
         {
             newEntity.OrderDetails.Add(details);
@@ -22,7 +22,7 @@ namespace Test.Controllers.Integration
             found.OrderDetails.ShouldHaveTheSameIdsAs(details);
         }
 
-        [RepeatTheory(1), MyAutoData]
+        [Theory, MyAutoData]
         public void ShouldModifyWithDetails(Order newEntity, OrderDetail[] newDetails, Order modified, OrderDetail[] modifiedDetails, ProductServiceContext createContext, ProductServiceContext readContext)
         {
             newEntity.OrderDetails.Add(newDetails);
@@ -38,7 +38,7 @@ namespace Test.Controllers.Integration
             found.OrderDetails.ShouldAllBeQuasiEquivalentTo(modifiedDetails);
         }
 
-        [RepeatTheory(1), MyAutoData]
+        [Theory, MyAutoData]
         public void ShouldModifyJustDetails(Order newEntity, OrderDetail[] newDetails, Order modified, OrderDetail[] modifiedDetails, ProductServiceContext createContext, ProductServiceContext readContext)
         {
             // arrange

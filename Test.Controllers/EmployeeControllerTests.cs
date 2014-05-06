@@ -13,7 +13,7 @@ namespace Test.Controllers.Integration
 {
     public class EmployeeControllerTests : ControllerTests<EmployeeController, Employee>
     {
-        [RepeatTheory(1), MyAutoData]
+        [Theory, MyAutoData]
         public override void ShouldAdd(Employee newEntity, ProductServiceContext readContext)
         {
             var territoryCount = readContext.Territories.Count();
@@ -24,7 +24,7 @@ namespace Test.Controllers.Integration
             AssertTerritories(newEntity.Id, newEntity, readContext, territoryCount);
         }
 
-        [RepeatTheory(1), MyAutoData]
+        [Theory, MyAutoData]
         public override void ShouldModify(Employee newEntity, Employee modified, ProductServiceContext createContext, ProductServiceContext readContext)
         {
             var territoryCount = readContext.Territories.Count();

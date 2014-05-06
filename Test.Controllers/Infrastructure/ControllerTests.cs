@@ -4,12 +4,13 @@ using AutoMapper;
 using FluentAssertions;
 using KendoUIMvcApplication;
 using Xunit;
+using Xunit.Extensions;
 
 namespace Test.Controllers.Integration
 {
     public abstract class ControllerTests<TController, TEntity> where TController : NorthwindController<TEntity>, new() where TEntity : Entity
     {
-        [RepeatTheory(1), MyAutoData]
+        [Theory, MyAutoData]
         public virtual void ShouldDelete(TEntity newEntity, ProductServiceContext createContext, ProductServiceContext readContext)
         {
             // arrange
@@ -21,13 +22,13 @@ namespace Test.Controllers.Integration
             Assert.Null(readContext.Set<TEntity>().Find(newEntity.Id));
         }
 
-        [RepeatFact(1)]
+        [Fact]
         public virtual void ShouldNotDeleteNotExisting()
         {
             new TController().DeleteAndSave(0).AssertIsNotFound();
         }
 
-        [RepeatTheory(1), MyAutoData]
+        [Theory, MyAutoData]
         public virtual void ShouldAdd(TEntity newEntity, ProductServiceContext readContext)
         {
             // act
@@ -38,7 +39,7 @@ namespace Test.Controllers.Integration
             entities.Find(newEntity.Id).ShouldBeEquivalentTo(newEntity);
         }
 
-        [RepeatTheory(1), MyAutoData]
+        [Theory, MyAutoData]
         public virtual void ShouldGetAll(TEntity[] newEntities, ProductServiceContext createContext)
         {
             // arrange
@@ -49,7 +50,7 @@ namespace Test.Controllers.Integration
             response.Count().Should().BeGreaterOrEqualTo(newEntities.Length, "Se poate sa avem date din alte teste.");
         }
 
-        [RepeatTheory(1), MyAutoData]
+        [Theory, MyAutoData]
         public virtual void ShouldGetById(TEntity newEntity, ProductServiceContext createContext)
         {
             // arrange
@@ -60,7 +61,7 @@ namespace Test.Controllers.Integration
             response.AssertIsOk(newEntity);
         }
 
-        [RepeatTheory(1), MyAutoData]
+        [Theory, MyAutoData]
         public virtual void ShouldNotGetByNonExistingId()
         {
             // act
@@ -69,7 +70,7 @@ namespace Test.Controllers.Integration
             response.AssertIsNotFound();
         }
 
-        [RepeatTheory(1), MyAutoData]
+        [Theory, MyAutoData]
         public virtual void ShouldModify(TEntity newEntity, TEntity modified, ProductServiceContext createContext, ProductServiceContext readContext)
         {
             // arrange
@@ -87,7 +88,7 @@ namespace Test.Controllers.Integration
             newEntity.ShouldBeQuasiEquivalentTo(modified);
         }
 
-        [RepeatTheory(1), MyAutoData]
+        [Theory, MyAutoData]
         public virtual void ShouldNotModifyId(int id, TEntity modified)
         {
             // act
@@ -96,7 +97,7 @@ namespace Test.Controllers.Integration
             response.AssertIsBadRequest();
         }
 
-        [RepeatTheory(1), MyAutoData]
+        [Theory, MyAutoData]
         public virtual void ShouldNotModifyNotExisting(TEntity entity)
         {
             // arrange
@@ -107,7 +108,7 @@ namespace Test.Controllers.Integration
             response.AssertIsNotFound();
         }
 
-        [RepeatTheory(1), MyAutoData]
+        [Theory, MyAutoData]
         public virtual void ShouldNotModifyConcurrent(TEntity entity, ProductServiceContext createContext, ProductServiceContext modifyContext, byte[] rowVersion)
         {
             // arrange
