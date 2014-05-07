@@ -54,6 +54,10 @@ namespace Test.Controllers.Integration
             modified.Id = newEntity.Id;
             modified.RowVersion = newEntity.RowVersion;
             modified.OrderDetails.Add(modifiedDetails);
+            for(int index = 0; index < modifiedDetails.Length; index++)
+            {
+                modifiedDetails[index].Id = newDetails[index].Id;
+            }
             Map(modified, newEntity);
             // act
             var response = new OrderController().PutAndSave(newEntity);
@@ -62,6 +66,7 @@ namespace Test.Controllers.Integration
 
             createContext.OrderDetails.Count().Should().Be(detailsCount, "nothing should be inserted in FK tables");
             var found = readContext.Orders.GetWithInclude(newEntity.Id, o => o.OrderDetails);
+            found.OrderDetails.ShouldHaveTheSameIdsAs(modifiedDetails); 
             found.OrderDetails.ShouldAllBeQuasiEquivalentTo(modifiedDetails);
         }
     }
