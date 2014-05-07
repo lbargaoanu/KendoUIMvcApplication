@@ -134,6 +134,11 @@ namespace Test.Controllers.Integration
             ((TEntity)wrapper.Data[0]).ShouldBeEquivalentTo(entity);
         }
 
+        public static void ShouldAllBeEquivalentTo<TEntity>(this IEnumerable<TEntity> subject, IEnumerable<TEntity> expectation, string reason = "", params object[] reasonArgs) where TEntity : Entity
+        {
+            subject.ShouldAllBeEquivalentTo(expectation, c=>c.ExcludeNavigationProperties<TEntity>(), reason, reasonArgs);
+        }
+
         public static void ShouldAllBeQuasiEquivalentTo<TEntity>(this IEnumerable<TEntity> subject, IEnumerable<TEntity> expectation, string reason = "", params object[] reasonArgs) where TEntity : Entity
         {
             subject.ShouldAllBeEquivalentTo(expectation, ExcludeInfrastructure<TEntity>(), reason, reasonArgs);

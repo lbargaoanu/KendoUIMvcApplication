@@ -19,7 +19,7 @@ namespace Test.Controllers.Integration
             base.ShouldAdd(newEntity, readContext);
 
             var found = readContext.Orders.GetWithInclude(newEntity.Id, o => o.OrderDetails);
-            found.OrderDetails.ShouldHaveTheSameIdsAs(details);
+            found.OrderDetails.ShouldAllBeEquivalentTo(details);
         }
 
         [Theory, MyAutoData]
@@ -30,12 +30,8 @@ namespace Test.Controllers.Integration
 
             base.ShouldModify(newEntity, modified, createContext, readContext);
 
-            foreach(var detail in modifiedDetails)
-            {
-                detail.OrderID = newEntity.Id;
-            }
             var found = readContext.Orders.GetWithInclude(newEntity.Id, o => o.OrderDetails);
-            found.OrderDetails.ShouldAllBeQuasiEquivalentTo(modifiedDetails);
+            found.OrderDetails.ShouldAllBeEquivalentTo(modifiedDetails);
         }
 
         protected override void Map(Order source, Order destination)
@@ -58,10 +54,6 @@ namespace Test.Controllers.Integration
             modified.Id = newEntity.Id;
             modified.RowVersion = newEntity.RowVersion;
             modified.OrderDetails.Add(modifiedDetails);
-            for(int index = 0; index < modifiedDetails.Length; index++)
-            {
-                modifiedDetails[index].Id = newDetails[index].Id;
-            }
             Map(modified, newEntity);
             // act
             var response = new OrderController().PutAndSave(newEntity);
@@ -70,7 +62,6 @@ namespace Test.Controllers.Integration
 
             createContext.OrderDetails.Count().Should().Be(detailsCount, "nothing should be inserted in FK tables");
             var found = readContext.Orders.GetWithInclude(newEntity.Id, o => o.OrderDetails);
-            found.OrderDetails.ShouldHaveTheSameIdsAs(modifiedDetails);
             found.OrderDetails.ShouldAllBeQuasiEquivalentTo(modifiedDetails);
         }
     }
