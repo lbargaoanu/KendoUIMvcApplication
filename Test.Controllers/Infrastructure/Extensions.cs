@@ -50,11 +50,6 @@ namespace Test.Controllers.Integration
             handler.Context.SaveChanges();
         }
 
-        public static bool IsEntity(this Type type)
-        {
-            return typeof(Entity).IsAssignableFrom(type);
-        }
-
         public static IHttpActionResult PutAndSave<TEntity>(this NorthwindController<TEntity> controller, TEntity entity) where TEntity : Entity
         {
             return controller.Action(c => c.Put(entity.Id, entity));
@@ -166,17 +161,7 @@ namespace Test.Controllers.Integration
 
         public static EquivalencyAssertionOptions<TSubject> ExcludeNavigationProperties<TSubject>(this EquivalencyAssertionOptions<TSubject> options)
         {
-            return options.Excluding(s => s.PropertyInfo.PropertyType.IsNavigationProperty());
-        }
-
-        public static bool IsNavigationProperty(this Type type)
-        {
-            return type.IsEntity() || type.IsEntityCollection();
-        }
-
-        public static bool IsEntityCollection(this Type type)
-        {
-            return type != typeof(string) && !type.IsArray && typeof(IEnumerable).IsAssignableFrom(type);
+            return options.Excluding(s => s.PropertyInfo.IsNavigationProperty());
         }
 
         public static IEnumerable<ITestCommand> Repeat(this IEnumerable<ITestCommand> commands, int count)

@@ -38,6 +38,12 @@ namespace Test.Controllers.Integration
             found.OrderDetails.ShouldAllBeQuasiEquivalentTo(modifiedDetails);
         }
 
+        protected override void Map(Order source, Order destination)
+        {
+            base.Map(source, destination);
+            destination.OrderDetails = source.OrderDetails;
+        }
+
         [Theory, MyAutoData]
         public void ShouldModifyJustDetails(Order newEntity, OrderDetail[] newDetails, Order modified, OrderDetail[] modifiedDetails, ProductServiceContext createContext, ProductServiceContext readContext)
         {
@@ -56,7 +62,7 @@ namespace Test.Controllers.Integration
             {
                 modifiedDetails[index].Id = newDetails[index].Id;
             }
-            Mapper.Map(modified, newEntity);
+            Map(modified, newEntity);
             // act
             var response = new OrderController().PutAndSave(newEntity);
             // assert

@@ -77,7 +77,9 @@ namespace Test.Controllers.Integration
             createContext.AddAndSave(newEntity);
             modified.Id = newEntity.Id;
             modified.RowVersion = newEntity.RowVersion;
-            Mapper.Map(modified, newEntity);
+
+            Map(modified, newEntity);
+
             var controller = new TController();
             // act
             var response = controller.PutAndSave(newEntity);
@@ -86,6 +88,11 @@ namespace Test.Controllers.Integration
             var entities = readContext.Set<TEntity>();
             newEntity = controller.Include(entities).Single(p => p.Id == newEntity.Id);
             newEntity.ShouldBeQuasiEquivalentTo(modified);
+        }
+
+        protected virtual void Map(TEntity source, TEntity destination)
+        {
+            Mapper.Map(source, destination);
         }
 
         [Theory, MyAutoData]

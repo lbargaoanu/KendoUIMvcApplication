@@ -8,25 +8,30 @@ namespace KendoUIMvcApplication.Controllers
 {
     public class OrderController : NorthwindController<Order>
     {
-        protected override void Modify(Order entity)
+        protected override void Modify(Order order)
         {
-            var existingEntity = Context.Orders.GetWithInclude(entity.Id, e => e.OrderDetails);
-            SetRowVersion(entity, existingEntity);
-            foreach(var existingDetail in existingEntity.OrderDetails.ToArray())
+            var existingOrder = Context.Orders.GetWithInclude(order.Id, e => e.OrderDetails);
+            SetRowVersion(order, existingOrder);
+            foreach(var existingDetail in existingOrder.OrderDetails.ToArray())
             {
-                var newDetail = entity.OrderDetails.SingleOrDefault(d => d.Id == existingDetail.Id);
-                if(newDetail == null)
+                var detail = order.OrderDetails.Find(existingDetail.Id);
+                if(detail == null)
                 {
                     Context.OrderDetails.Remove(existingDetail);
                 }
                 else
                 {
-                    Mapper.Map(newDetail, existingDetail);
+                    Mapper.Map(detail, existingDetail);
                 }
             }
-            //Context.OrderDetails.RemoveRange(existingEntity.OrderDetails.Where(d=>!entity.OrderDetails.Any(od=>od.Id==d.Id)));
-            Mapper.Map(entity, existingEntity);
-            existingEntity.OrderDetails.Set(Context);
+            foreach(var detail in order.OrderDetails)
+            {
+                if(!detail.Exists || existingOrder.OrderDetails.Find(detail.Id) == null)
+                {
+                    existingOrder.OrderDetails.Add(detail);
+                }
+            }
+            Mapper.Map(order, existingOrder);
         }
     }
 }

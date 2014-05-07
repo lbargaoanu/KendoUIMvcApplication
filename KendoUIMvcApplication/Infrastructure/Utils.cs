@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -8,12 +9,18 @@ using System.Net.Http;
 using System.Reflection;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
+using AutoMapper;
 using Newtonsoft.Json;
 
 namespace KendoUIMvcApplication
 {
     public static class Utils
     {
+        public static TEntity Find<TEntity>(this ICollection<TEntity> entities, int id) where TEntity : Entity
+        {
+            return entities.SingleOrDefault(e => e.Id == id);
+        }
+
         public static void Add<T>(this ICollection<T> collection, IEnumerable<T> newItems)
         {
             foreach(var item in newItems)
@@ -21,10 +28,35 @@ namespace KendoUIMvcApplication
                 collection.Add(item);
             }
         }
+        
+        public static bool IsEntity(this Type type)
+        {
+            return typeof(Entity).IsAssignableFrom(type);
+        }
 
         public static void Set<TEntity>(this ICollection<TEntity> children, params int[] ids) where TEntity : Entity, new()
         {
             children.Set(null, ids);
+        }
+
+        public static bool IsNavigationProperty(this PropertyInfo property)
+        {
+            return property.PropertyType.IsEntity() || property.PropertyType.IsEntityCollection();
+        }
+
+        public static bool IsEntityCollection(this Type type)
+        {
+            return type != typeof(string) && !type.IsArray && typeof(IEnumerable).IsAssignableFrom(type);
+        }
+
+        public static IMappingExpression IgnoreProperties(this IMappingExpression mappingExpression, Type destinationType, Func<PropertyInfo, bool> filter)
+        {
+            var destInfo = new AutoMapper.TypeInfo(destinationType);
+            foreach(var destProperty in destInfo.GetPublicWriteAccessors().OfType<PropertyInfo>().Where(filter))
+            {
+                mappingExpression = mappingExpression.ForMember(destProperty.Name, opt => opt.Ignore());
+            }
+            return mappingExpression;
         }
 
         public static void Set<TEntity>(this ICollection<TEntity> children, DbContext context, params int[] ids) where TEntity : Entity, new()
@@ -32,7 +64,7 @@ namespace KendoUIMvcApplication
             TEntity[] existingChildren;
             if(ids.Length == 0)
             {
-                existingChildren = children.Where(e => e.Id > 0).ToArray();
+                existingChildren = children.Where(e => e.Exists).ToArray();
                 foreach(var child in existingChildren)
                 {
                     children.Remove(child);

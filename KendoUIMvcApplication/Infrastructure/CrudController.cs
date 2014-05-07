@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -26,11 +27,11 @@ namespace KendoUIMvcApplication
             }
         }
 
-        protected void SetRowVersion(TEntity entity, TEntity existingEntity)
+        protected void SetRowVersion(TEntity source, TEntity destination)
         {
-            if(entity.RowVersion != existingEntity.RowVersion)
+            if(source.RowVersion != destination.RowVersion)
             {
-                Context.Entry(existingEntity).Property(e => e.RowVersion).OriginalValue = entity.RowVersion;
+                Context.Entry(destination).Property(e => e.RowVersion).OriginalValue = source.RowVersion;
             }
         }
 
@@ -173,6 +174,16 @@ namespace KendoUIMvcApplication
     {
         [Key]
         public int Id { get; set; }
+        
+        [NotMapped]
+        public bool Exists
+        {
+            get
+            {
+                return Id > 0;
+            }
+        }
+        
         [Timestamp]
         public byte[] RowVersion { get; set; }
     }

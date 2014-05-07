@@ -58,7 +58,7 @@ namespace KendoUIMvcApplication
                 c.Property("Id").HasColumnName(c.ClrType.Name + "ID");
                 if(Mapper.FindTypeMapFor(c.ClrType, c.ClrType) == null)
                 {
-                    Mapper.CreateMap(c.ClrType, c.ClrType);//.ForMember("Id", p => p.Ignore()).ForMember("RowVersion", p => p.Ignore());
+                    Mapper.CreateMap(c.ClrType, c.ClrType).IgnoreProperties(c.ClrType, p=>p.IsNavigationProperty());
                 }
             });
         }

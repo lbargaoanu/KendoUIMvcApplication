@@ -36,6 +36,12 @@ namespace Test.Controllers.Integration
             AssertTerritories(newEntity.Id, modified, readContext, territoryCount);
         }
 
+        protected override void Map(Employee source, Employee destination)
+        {
+            base.Map(source, destination);
+            destination.Territories = source.Territories;
+        }
+
         private static void AssertTerritories(int id, Employee expectation, ProductServiceContext readContext, int territoryCount)
         {
             var found = readContext.Employees.GetWithInclude(id, e => e.Territories);

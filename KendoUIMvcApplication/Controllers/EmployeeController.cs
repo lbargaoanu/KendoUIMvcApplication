@@ -20,6 +20,7 @@ namespace KendoUIMvcApplication.Controllers
             var existingEntity = Context.Employees.GetWithInclude(entity.Id, e => e.Territories);
             SetRowVersion(entity, existingEntity);
             Mapper.Map(entity, existingEntity);
+            existingEntity.Territories = entity.Territories;
             existingEntity.Territories.Set(Context);
         }
     }
