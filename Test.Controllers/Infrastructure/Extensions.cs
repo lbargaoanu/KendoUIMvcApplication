@@ -155,7 +155,7 @@ namespace Test.Controllers.Integration
 
         public static void ShouldContain<TEntity>(this Wrapper wrapper, TEntity entity) where TEntity : VersionedEntity
         {
-            ((TEntity)wrapper.Data[0]).ShouldBeEquivalentTo(entity);
+            wrapper.Data[0].ShouldBeEquivalentTo(entity);
         }
 
         public static void ShouldAllBeEquivalentTo<TEntity>(this IEnumerable<TEntity> subject, IEnumerable<TEntity> expectation, string reason = "", params object[] reasonArgs) where TEntity : Entity

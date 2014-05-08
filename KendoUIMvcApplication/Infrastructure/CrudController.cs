@@ -93,7 +93,7 @@ namespace KendoUIMvcApplication
 
         protected internal OkNegotiatedContentResult<Wrapper> Ok(TEntity entity)
         {
-            return Ok(new Wrapper{ Data = new[] { entity }, Total = 1 });
+            return Ok(new Wrapper(entity));
         }
 
         protected virtual void Modify(TEntity entity)
@@ -110,7 +110,7 @@ namespace KendoUIMvcApplication
 
         protected internal CreatedAtRouteNegotiatedContentResult<Wrapper> Created(TEntity entity)
         {
-            return CreatedAtRoute("DefaultApi", new { id = entity.Id }, new Wrapper{ Data = new[] { entity }, Total = 1 });
+            return CreatedAtRoute("DefaultApi", new { id = entity.Id }, new Wrapper(entity));
         }
 
         protected virtual void Add(TEntity entity)
@@ -163,7 +163,12 @@ namespace KendoUIMvcApplication
 
     public class Wrapper
     {
-        public object[] Data { get; set; }
+        public Wrapper(params Entity[] entities)
+        {
+            Data = entities;
+            Total = entities.Length;
+        }
+        public Entity[] Data { get; set; }
         public int Total { get; set; }
     }
 
