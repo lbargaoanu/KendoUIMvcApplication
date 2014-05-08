@@ -147,7 +147,6 @@
     <Compile Include="Infrastructure\PrivateReflectionDynamicObject.cs" />
     <Compile Include="Infrastructure\SeedDatabase.cs" />
     <Compile Include="OrderControllerTests.cs" />
-    <Compile Include="OrderDetailControllerTests.cs" />
     <Compile Include="ProductControllerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegionControllerTests.cs" />

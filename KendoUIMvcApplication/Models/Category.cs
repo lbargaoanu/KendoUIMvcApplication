@@ -12,7 +12,7 @@ namespace KendoUIMvcApplication
     using System;
     using System.Collections.Generic;
     
-    public partial class Category : Entity
+    public partial class Category : VersionedEntity
     {
         public Category()
         {

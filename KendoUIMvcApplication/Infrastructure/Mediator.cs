@@ -102,7 +102,7 @@ namespace KendoUIMvcApplication
             return Void.Default;
         }
 
-        protected void SetRowVersion<TEntity>(TEntity source, TEntity destination) where TEntity : Entity
+        protected void SetRowVersion<TEntity>(TEntity source, TEntity destination) where TEntity : VersionedEntity
         {
             destination.SetRowVersion(source, Context);
         }

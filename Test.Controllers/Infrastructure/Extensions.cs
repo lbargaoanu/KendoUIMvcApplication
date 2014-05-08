@@ -62,32 +62,32 @@ namespace Test.Controllers.Integration
             handler.Context.SaveChanges();
         }
 
-        public static IHttpActionResult PutAndSave<TEntity>(this NorthwindController<TEntity> controller, TEntity entity) where TEntity : Entity
+        public static IHttpActionResult PutAndSave<TEntity>(this NorthwindController<TEntity> controller, TEntity entity) where TEntity : VersionedEntity
         {
             return controller.Action(c => c.Put(entity.Id, entity));
         }
 
-        public static IHttpActionResult PutAndSave<TEntity>(this NorthwindController<TEntity> controller, int id, TEntity entity) where TEntity : Entity
+        public static IHttpActionResult PutAndSave<TEntity>(this NorthwindController<TEntity> controller, int id, TEntity entity) where TEntity : VersionedEntity
         {
             return controller.Action(c => c.Put(id, entity));
         }
 
-        public static IHttpActionResult DeleteAndSave<TEntity>(this NorthwindController<TEntity> controller, int id) where TEntity : Entity
+        public static IHttpActionResult DeleteAndSave<TEntity>(this NorthwindController<TEntity> controller, int id) where TEntity : VersionedEntity
         {
             return controller.Action(c => c.Delete(id));
         }
 
-        public static IHttpActionResult PostAndSave<TEntity>(this NorthwindController<TEntity> controller, TEntity entity) where TEntity : Entity
+        public static IHttpActionResult PostAndSave<TEntity>(this NorthwindController<TEntity> controller, TEntity entity) where TEntity : VersionedEntity
         {
             return controller.Action(c => c.Post(entity));
         }
 
-        public static DataSourceResult HandleGetAll<TEntity>(this NorthwindController<TEntity> controller) where TEntity : Entity
+        public static DataSourceResult HandleGetAll<TEntity>(this NorthwindController<TEntity> controller) where TEntity : VersionedEntity
         {
             return controller.Action(c => c.GetAll(new DataSourceRequest{ PageSize = PageSize, Page = 2 }));
         }
 
-        public static IHttpActionResult HandleGetById<TEntity>(this NorthwindController<TEntity> controller, int id) where TEntity : Entity
+        public static IHttpActionResult HandleGetById<TEntity>(this NorthwindController<TEntity> controller, int id) where TEntity : VersionedEntity
         {
             return controller.Action(c => c.Get(id));
         }
@@ -135,7 +135,7 @@ namespace Test.Controllers.Integration
             return Assert.IsType<OkResult>(result);
         }
 
-        public static OkNegotiatedContentResult<Wrapper> AssertIsOk<TEntity>(this IHttpActionResult result, TEntity entity) where TEntity : Entity
+        public static OkNegotiatedContentResult<Wrapper> AssertIsOk<TEntity>(this IHttpActionResult result, TEntity entity) where TEntity : VersionedEntity
         {
             var content = Assert.IsAssignableFrom<OkNegotiatedContentResult<Wrapper>>(result);
             Assert.Equal(1, content.Content.Total);
@@ -143,7 +143,7 @@ namespace Test.Controllers.Integration
             return content;
         }
 
-        public static CreatedAtRouteNegotiatedContentResult<Wrapper> AssertIsCreatedAtRoute<TEntity>(this IHttpActionResult result, TEntity entity) where TEntity : Entity
+        public static CreatedAtRouteNegotiatedContentResult<Wrapper> AssertIsCreatedAtRoute<TEntity>(this IHttpActionResult result, TEntity entity) where TEntity : VersionedEntity
         {
             var content = Assert.IsAssignableFrom<CreatedAtRouteNegotiatedContentResult<Wrapper>>(result);
             Assert.Equal(content.RouteName, "DefaultApi");
@@ -153,7 +153,7 @@ namespace Test.Controllers.Integration
             return content;
         }
 
-        public static void ShouldContain<TEntity>(this Wrapper wrapper, TEntity entity) where TEntity : Entity
+        public static void ShouldContain<TEntity>(this Wrapper wrapper, TEntity entity) where TEntity : VersionedEntity
         {
             ((TEntity)wrapper.Data[0]).ShouldBeEquivalentTo(entity);
         }
@@ -175,7 +175,7 @@ namespace Test.Controllers.Integration
 
         private static Func<EquivalencyAssertionOptions<TEntity>, EquivalencyAssertionOptions<TEntity>> ExcludeInfrastructure<TEntity>() where TEntity : Entity
         {
-            return c => c.Excluding(e => e.Id).Excluding(e => e.RowVersion).ExcludeNavigationProperties();
+            return c => c.Excluding(e => e.Id).Excluding(s=>s.PropertyPath=="RowVersion").ExcludeNavigationProperties();
         }
 
         public static void ShouldBeEquivalentTo<TEntity>(this TEntity subject, TEntity expectation, string reason = "", params object[] reasonArgs) where TEntity : Entity
@@ -304,7 +304,7 @@ namespace Test.Controllers.Integration
         public override int SaveChanges()
         {
             var modifiedEntities = new List<object>();
-            foreach(var entry in ChangeTracker.Entries())
+            foreach(var entry in ChangeTracker.Entries().Where(e=>e.Entity is VersionedEntity))
             {
                 if(entry.State == EntityState.Modified)
                 {
@@ -338,7 +338,7 @@ namespace Test.Controllers.Integration
 
         private static void SetRowVersion(object entity)
         {
-            ((Entity)entity).RowVersion = BitConverter.GetBytes(sequence.CreateAnonymous());
+            ((VersionedEntity)entity).RowVersion = BitConverter.GetBytes(sequence.CreateAnonymous());
         }
     }
 
@@ -347,14 +347,14 @@ namespace Test.Controllers.Integration
         private static string[] IntegerTypes = new[] { "int", "bigint", "smallint", "tinyint", "bit" };
         private static string[] RealTypes = new[] { "double", "decimal", "float", "real" };
 
-        public static void DeleteAndSave<TEntity>(this DbContext context, int id) where TEntity : Entity
+        public static void DeleteAndSave<TEntity>(this DbContext context, int id) where TEntity : VersionedEntity
         {
             var entities = context.Set<TEntity>();
             entities.Remove(entities.Find(id));
             context.SaveChanges();
         }
 
-        public static TEntity AddAndSave<TEntity>(this DbContext context, params TEntity[] entities) where TEntity : Entity
+        public static TEntity AddAndSave<TEntity>(this DbContext context, params TEntity[] entities) where TEntity : VersionedEntity
         {
             var dbSet = context.Set<TEntity>();
             foreach(var entity in entities)

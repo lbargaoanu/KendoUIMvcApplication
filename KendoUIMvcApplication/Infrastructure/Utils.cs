@@ -16,7 +16,7 @@ namespace KendoUIMvcApplication
 {
     public static class Utils
     {
-        public static void SetRowVersion<TEntity>(this TEntity destination, TEntity source, DbContext context) where TEntity : Entity
+        public static void SetRowVersion<TEntity>(this TEntity destination, TEntity source, DbContext context) where TEntity : VersionedEntity
         {
             if(source.RowVersion != destination.RowVersion)
             {

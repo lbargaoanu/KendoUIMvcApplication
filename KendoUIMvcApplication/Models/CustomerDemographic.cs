@@ -12,7 +12,7 @@ namespace KendoUIMvcApplication
     using System;
     using System.Collections.Generic;
     
-    public partial class CustomerDemographic : Entity
+    public partial class CustomerDemographic : VersionedEntity
     {
         public CustomerDemographic()
         {

@@ -12,7 +12,7 @@ namespace KendoUIMvcApplication
     using System;
     using System.Collections.Generic;
     
-    public partial class Region : Entity
+    public partial class Region : VersionedEntity
     {
         public Region()
         {

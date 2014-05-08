@@ -12,7 +12,7 @@ namespace KendoUIMvcApplication
     using System;
     using System.Collections.Generic;
     
-    public partial class Supplier : Entity
+    public partial class Supplier : VersionedEntity
     {
         public Supplier()
         {

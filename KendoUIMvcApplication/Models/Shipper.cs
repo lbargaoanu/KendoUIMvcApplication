@@ -12,7 +12,7 @@ namespace KendoUIMvcApplication
     using System;
     using System.Collections.Generic;
     
-    public partial class Shipper : Entity
+    public partial class Shipper : VersionedEntity
     {
         public Shipper()
         {

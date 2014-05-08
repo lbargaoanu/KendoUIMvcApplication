@@ -8,7 +8,7 @@ using Xunit.Extensions;
 
 namespace Test.Controllers.Integration
 {
-    public abstract class ControllerTests<TController, TEntity> where TController : NorthwindController<TEntity>, new() where TEntity : Entity
+    public abstract class ControllerTests<TController, TEntity> where TController : NorthwindController<TEntity>, new() where TEntity : VersionedEntity
     {
         [Theory, MyAutoData]
         public virtual void ShouldDelete(TEntity newEntity, ProductServiceContext createContext, ProductServiceContext readContext)

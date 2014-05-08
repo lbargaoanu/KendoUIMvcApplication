@@ -1,6 +1,6 @@
 
 -- --------------------------------------------------
--- Date Created: 05/07/2014 16:47:15
+-- Date Created: 05/08/2014 17:41:51
 -- compatible SQLite
 -- --------------------------------------------------
 -- Dropping existing tables
@@ -118,8 +118,7 @@ CREATE TABLE [OrderDetails] (
     [ProductID] INTEGER NOT NULL,
     [UnitPrice] REAL NOT NULL,
     [Quantity] INTEGER NOT NULL,
-    [Discount] REAL NOT NULL,
-    [RowVersion] BLOB NOT NULL
+    [Discount] REAL NOT NULL
 			
 		,CONSTRAINT [FK_Order_OrderDetails]
     		FOREIGN KEY ([OrderID])

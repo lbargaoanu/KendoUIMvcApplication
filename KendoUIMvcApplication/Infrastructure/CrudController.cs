@@ -13,11 +13,11 @@ using StructureMap.Attributes;
 
 namespace KendoUIMvcApplication
 {
-    public class NorthwindController<TEntity> : CrudController<ProductServiceContext, TEntity> where TEntity : Entity
+    public class NorthwindController<TEntity> : CrudController<ProductServiceContext, TEntity> where TEntity : VersionedEntity
     {
     }
 
-    public class CrudController<TContext, TEntity> : BaseController where TEntity : Entity where TContext : DbContext
+    public class CrudController<TContext, TEntity> : BaseController where TEntity : VersionedEntity where TContext : DbContext
     {
         public new TContext Context
         {
@@ -167,6 +167,12 @@ namespace KendoUIMvcApplication
         public int Total { get; set; }
     }
 
+    public abstract class VersionedEntity : Entity
+    {
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
+    }
+
     public abstract class Entity
     {
         [Key]
@@ -180,8 +186,5 @@ namespace KendoUIMvcApplication
                 return Id > 0;
             }
         }
-        
-        [Timestamp]
-        public byte[] RowVersion { get; set; }
     }
 }
