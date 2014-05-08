@@ -14,7 +14,7 @@ namespace KendoUIMvcApplication
 
         public IDependencyScope BeginScope()
         {
-            return new StructureMapDependencyScope(container.GetNestedContainer());
+            return new StructureMapDependencyScope(Container.GetNestedContainer());
         }
 
         protected override void Dispose(bool disposing)
@@ -24,21 +24,21 @@ namespace KendoUIMvcApplication
 
     public class StructureMapDependencyScope : IDependencyScope
     {
-        protected IContainer container;
+        public IContainer Container { get; private set; }
 
         public StructureMapDependencyScope(IContainer container)
         {
-            this.container = container;
+            this.Container = container;
         }
 
         public object GetService(Type serviceType)
         {
-            return serviceType.IsAbstract ? container.TryGetInstance(serviceType) : container.GetInstance(serviceType);
+            return serviceType.IsAbstract ? Container.TryGetInstance(serviceType) : Container.GetInstance(serviceType);
         }
 
         public IEnumerable<object> GetServices(Type serviceType)
         {
-            return container.GetAllInstances(serviceType).Cast<object>();
+            return Container.GetAllInstances(serviceType).Cast<object>();
         }
 
         public void Dispose()
@@ -48,10 +48,10 @@ namespace KendoUIMvcApplication
 
         protected virtual void Dispose(bool disposing)
         {
-            if(container != null)
+            if(Container != null)
             {
-                container.Dispose();
-                container = null;
+                Container.Dispose();
+                Container = null;
             }
         }
     }

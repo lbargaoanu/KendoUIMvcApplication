@@ -29,10 +29,7 @@ namespace KendoUIMvcApplication
 
         protected void SetRowVersion(TEntity source, TEntity destination)
         {
-            if(source.RowVersion != destination.RowVersion)
-            {
-                Context.Entry(destination).Property(e => e.RowVersion).OriginalValue = source.RowVersion;
-            }
+            destination.SetRowVersion(source, Context);
         }
 
         [NonAction]

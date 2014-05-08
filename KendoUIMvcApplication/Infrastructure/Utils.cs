@@ -16,6 +16,14 @@ namespace KendoUIMvcApplication
 {
     public static class Utils
     {
+        public static void SetRowVersion<TEntity>(this TEntity destination, TEntity source, DbContext context) where TEntity : Entity
+        {
+            if(source.RowVersion != destination.RowVersion)
+            {
+                context.Entry(destination).Property(e => e.RowVersion).OriginalValue = source.RowVersion;
+            }
+        }
+
         public static TEntity Find<TEntity>(this ICollection<TEntity> entities, int id) where TEntity : Entity
         {
             return entities.SingleOrDefault(e => e.Id == id);

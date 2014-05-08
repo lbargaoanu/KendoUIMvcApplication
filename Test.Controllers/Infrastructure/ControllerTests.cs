@@ -47,7 +47,7 @@ namespace Test.Controllers.Integration
             // act
             var response = new TController().HandleGetAll();
             // assert
-            response.Count().Should().BeGreaterOrEqualTo(newEntities.Length, "Se poate sa avem date din alte teste.");
+            response.AssertIs<TEntity>(newEntities.Length);
         }
 
         [Theory, MyAutoData]

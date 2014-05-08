@@ -16,15 +16,18 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Web.Http;
+using System.Web.Http.Dependencies;
 using System.Web.Http.Results;
 using AutoMapper;
 using FluentAssertions;
 using FluentAssertions.Equivalency;
+using Kendo.Mvc.UI;
 using KendoUIMvcApplication;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Kernel;
 using Ploeh.AutoFixture.Xunit;
+using StructureMap;
 using Xunit;
 using Xunit.Extensions;
 using Xunit.Sdk;
@@ -33,7 +36,16 @@ namespace Test.Controllers.Integration
 {
     public static class Extensions
     {
+        private const int PageSize = 3;
         private static readonly ProductServiceContext dbContext = ContextHelper.BuildContext();
+        private static readonly StructureMapResolver resolver = CreateResolver();
+
+        private static StructureMapResolver CreateResolver()
+        {
+            KendoUIMvcApplication.StructureMap.Register();
+            ObjectFactory.Configure(c => c.For<ProductServiceContext>().Use(()=>new TestProductServiceContext()));
+            return new StructureMapResolver(ObjectFactory.Container);
+        }
 
         public static bool IsInt(this Type type)
         {
@@ -70,9 +82,9 @@ namespace Test.Controllers.Integration
             return controller.Action(c => c.Post(entity));
         }
 
-        public static IQueryable<TEntity> HandleGetAll<TEntity>(this NorthwindController<TEntity> controller) where TEntity : Entity
+        public static DataSourceResult HandleGetAll<TEntity>(this NorthwindController<TEntity> controller) where TEntity : Entity
         {
-            return controller.Action(c => c.GetAll());
+            return controller.Action(c => c.GetAll(new DataSourceRequest{ PageSize = PageSize, Page = 2 }));
         }
 
         public static IHttpActionResult HandleGetById<TEntity>(this NorthwindController<TEntity> controller, int id) where TEntity : Entity
@@ -82,13 +94,25 @@ namespace Test.Controllers.Integration
 
         public static TResult Action<TController, TResult>(this TController controller, Func<TController, TResult> action) where TController : BaseController
         {
-            if(controller.Context == null)
+            using(var scope = resolver.BeginScope())
             {
-                controller.Context = new TestProductServiceContext();
+                if(controller.Context == null)
+                {
+                    controller.Context = (TestProductServiceContext) scope.GetService(typeof(ProductServiceContext));
+                    controller.Mediator = Mediator.Create(scope);
+                }
+                var result = action(controller);
+                controller.Context.SaveChanges();
+                return result;
             }
-            var result = action(controller);
-            controller.Context.SaveChanges();
-            return result;
+        }
+
+        public static void AssertIs<TEntity>(this DataSourceResult result, int length)
+        {
+            Assert.Equal(null, result.Errors);
+            var data = (List<TEntity>) result.Data;
+            data.Count(e => e is TEntity).Should().Be(PageSize, "Sa intoarca PageSize entities.");
+            result.Total.Should().BeGreaterOrEqualTo(length, "Se poate sa avem date din alte teste.");
         }
 
         public static BadRequestResult AssertIsBadRequest(this IHttpActionResult result)
@@ -191,7 +215,6 @@ namespace Test.Controllers.Integration
             }
         }
     }
-
 
     public class RepeatTheoryAttribute : TheoryAttribute
     {
@@ -466,10 +489,12 @@ namespace Test.Controllers.Integration
 
     public class MyCustomization : ICustomization, ISpecimenBuilder
     {
+        public const int CollectionCount = 8;
+
         public void Customize(IFixture fixture)
         {
             fixture.Customize<ProductServiceContext>(c => c.FromFactory(() => new TestProductServiceContext()).OmitAutoProperties());
-            fixture.RepeatCount = 8;
+            fixture.RepeatCount = CollectionCount;
             fixture.Customizations.Add(this);
         }
 

@@ -7,11 +7,16 @@ namespace KendoUIMvcApplication
 {
     public class Mediator : IMediator
     {
-        readonly IDependencyResolver dependencyResolver;
+        public IDependencyScope DependencyResolver { get; private set; }
+
+        public static Mediator Create(IDependencyScope dependencyScope)
+        {
+            return new Mediator(null) { DependencyResolver = dependencyScope };
+        }
 
         public Mediator(IDependencyResolver dependencyResolver)
         {
-            this.dependencyResolver = dependencyResolver;
+            this.DependencyResolver = dependencyResolver;
         }
 
         public TResult Get<TResult>(IQuery<TResult> request)
@@ -22,7 +27,7 @@ namespace KendoUIMvcApplication
         private TResult RunHandler<TResult>(Type genericHandlerType, object request)
         {
             var handlerType = genericHandlerType.MakeGenericType(request.GetType(), typeof(TResult));
-            dynamic handler = dependencyResolver.GetService(handlerType);
+            dynamic handler = DependencyResolver.GetService(handlerType);
             if(handler == null)
             {
                 throw new InvalidOperationException("Cannot find handler for " + request);
@@ -95,6 +100,11 @@ namespace KendoUIMvcApplication
         {
             Handle(command);
             return Void.Default;
+        }
+
+        protected void SetRowVersion<TEntity>(TEntity source, TEntity destination) where TEntity : Entity
+        {
+            destination.SetRowVersion(source, Context);
         }
 
         [SetterProperty]

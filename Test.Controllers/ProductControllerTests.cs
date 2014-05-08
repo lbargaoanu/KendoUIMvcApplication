@@ -11,7 +11,7 @@ namespace Test.Controllers.Integration
 {
     public class ProductControllerTests : ControllerTests<ProductController, Product>
     {
-        public static void Customize(Product entity, ProductServiceContext context)
+        public static void Customize(Product entity)
         {
         }
 
