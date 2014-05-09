@@ -1,6 +1,4 @@
-using System;
 using System.Linq;
-using AutoMapper;
 using FluentAssertions;
 using KendoUIMvcApplication;
 using KendoUIMvcApplication.Controllers;
@@ -12,12 +10,27 @@ namespace Test.Controllers.Integration
     public class OrderControllerTests : ControllerTests<OrderController, Order>
     {
         [Theory, MyAutoData]
+        public override void ShouldDelete(Order newEntity, ProductServiceContext createContext, ProductServiceContext readContext)
+        {
+            base.ShouldDelete(newEntity, createContext, readContext);
+            foreach(var detail in newEntity.OrderDetails)
+            {
+                Assert.Null(readContext.OrderDetails.Find(detail.Id));
+            }
+        }
+
+        [Theory, MyAutoData]
         public void ShouldAddWithDetails(Order newEntity, OrderDetail[] details, ProductServiceContext readContext)
         {
             newEntity.OrderDetails.Add(details);
             
             base.ShouldAdd(newEntity, readContext);
 
+            CheckDetails(newEntity, details, readContext);
+        }
+
+        private static void CheckDetails(Order newEntity, OrderDetail[] details, ProductServiceContext readContext)
+        {
             var found = readContext.Orders.GetWithInclude(newEntity.Id, o => o.OrderDetails);
             found.OrderDetails.ShouldAllBeEquivalentTo(details);
         }
@@ -30,8 +43,7 @@ namespace Test.Controllers.Integration
 
             base.ShouldModify(newEntity, modified, createContext, readContext);
 
-            var found = readContext.Orders.GetWithInclude(newEntity.Id, o => o.OrderDetails);
-            found.OrderDetails.ShouldAllBeEquivalentTo(modifiedDetails);
+            CheckDetails(newEntity, modifiedDetails, readContext);
         }
 
         protected override void Map(Order source, Order destination)
