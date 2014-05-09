@@ -187,7 +187,6 @@
     <Compile Include="Models\Results\CustOrdersOrders_Result.cs" />
     <Compile Include="Models\Employee.cs" />
     <Compile Include="Models\Results\Employee_Sales_by_Country_Result.cs" />
-    <Compile Include="Infrastructure\Northwind.Context.cs" />
     <Compile Include="Models\Order.cs" />
     <Compile Include="Models\OrderDetail.cs" />
     <Compile Include="Models\Product.cs" />
