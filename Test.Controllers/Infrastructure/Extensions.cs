@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -16,9 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Web.Http;
-using System.Web.Http.Dependencies;
 using System.Web.Http.Results;
-using AutoMapper;
 using FluentAssertions;
 using FluentAssertions.Equivalency;
 using Kendo.Mvc.UI;
@@ -37,13 +34,12 @@ namespace Test.Controllers.Integration
     public static class Extensions
     {
         private const int PageSize = 3;
-        private static readonly ProductServiceContext dbContext = ContextHelper.BuildContext();
         private static readonly StructureMapResolver resolver = CreateResolver();
 
         private static StructureMapResolver CreateResolver()
         {
             KendoUIMvcApplication.StructureMap.Register();
-            ObjectFactory.Configure(c => c.For<ProductServiceContext>().Use(()=>new TestProductServiceContext()));
+            ObjectFactory.Configure(c => c.For<ProductServiceContext>().Use(_=>TestProductServiceContext.New()));
             return new StructureMapResolver(ObjectFactory.Container);
         }
 
@@ -56,7 +52,7 @@ namespace Test.Controllers.Integration
         {
             if(handler.Context == null)
             {
-                handler.Context = new TestProductServiceContext();
+                handler.Context = TestProductServiceContext.New();
             }
             handler.Handle(command);
             handler.Context.SaveChanges();
@@ -271,13 +267,47 @@ namespace Test.Controllers.Integration
     public class TestProductServiceContext : ProductServiceContext
     {
         private static UInt32SequenceGenerator sequence = new UInt32SequenceGenerator();
+        private static readonly ProductServiceContext dbContext = CreateDatabase();
 
-        public TestProductServiceContext(DbConnection connection) : base(connection)
+        public static ProductServiceContext New()
+        {
+            return new TestProductServiceContext(dbContext.Database.Connection);
+        }
+
+        private static ProductServiceContext CreateDatabase()
+        {
+            var connection = new SQLiteConnection("FullUri=file::memory:?cache=shared;");
+            connection.Open();
+            var context = new TestProductServiceContext(connection);
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Infrastructure", "ssdltosqlite3.sql");
+            string script;
+            try
+            {
+                script = File.ReadAllText(path);
+            }
+            catch(Exception ex)
+            {
+                Trace.WriteLine(ex);
+                return context;
+            }
+            var result = context.Database.ExecuteSqlCommand(script);
+            Assert.Equal(0, result);
+            result = context.Database.ExecuteSqlCommand("PRAGMA foreign_keys = ON;");
+            Assert.Equal(0, result);
+
+            ContextHelper.SeedDatabase(context);
+
+            context.SaveChanges();
+
+            return context;
+        }
+
+        private TestProductServiceContext(DbConnection connection) : base(connection)
         {
             Init();
         }
 
-        public TestProductServiceContext()
+        private TestProductServiceContext()
         {
             Init();
         }
@@ -347,6 +377,12 @@ namespace Test.Controllers.Integration
         private static string[] IntegerTypes = new[] { "int", "bigint", "smallint", "tinyint", "bit" };
         private static string[] RealTypes = new[] { "double", "decimal", "float", "real" };
 
+        public static void SeedDatabase(ProductServiceContext context)
+        {
+            var fixture = CreateFixture();
+            SeedDatabase(context, fixture);
+        }
+
         public static void DeleteAndSave<TEntity>(this DbContext context, int id) where TEntity : VersionedEntity
         {
             var entities = context.Set<TEntity>();
@@ -365,30 +401,6 @@ namespace Test.Controllers.Integration
             return entities.First();
         }
 
-        public static ProductServiceContext BuildContext(bool createDatabase = true)
-        {
-            var connection = new SQLiteConnection("FullUri=file::memory:?cache=shared;");
-            connection.Open();
-            var context = new TestProductServiceContext(connection);
-            if(!createDatabase)
-            {
-                return context;
-            }
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Infrastructure", "ssdltosqlite3.sql");
-            var script = File.ReadAllText(path);
-            var result = context.Database.ExecuteSqlCommand(script);
-            Assert.Equal(0, result);
-            result = context.Database.ExecuteSqlCommand("PRAGMA foreign_keys = ON;");
-            Assert.Equal(0, result);
-
-            var fixture = CreateFixture();
-            SeedDatabase(context, fixture);
-
-            context.SaveChanges();
-
-            return context;
-        }
-
         public static void DetachAll(this DbContext context)
         {
             foreach(var entry in context.ChangeTracker.Entries())
@@ -399,7 +411,7 @@ namespace Test.Controllers.Integration
 
         public static ItemCollection GetSchema()
         {
-            var dbContext = ContextHelper.BuildContext(createDatabase: false);
+            var dbContext = TestProductServiceContext.New();
             var objContext = ((IObjectContextAdapter)dbContext).ObjectContext;
             return objContext.MetadataWorkspace.GetItemCollection(DataSpace.SSpace);
         }
@@ -493,7 +505,7 @@ namespace Test.Controllers.Integration
 
         public void Customize(IFixture fixture)
         {
-            fixture.Customize<ProductServiceContext>(c => c.FromFactory(() => new TestProductServiceContext()).OmitAutoProperties());
+            fixture.Customize<ProductServiceContext>(c => c.FromFactory(TestProductServiceContext.New).OmitAutoProperties());
             fixture.RepeatCount = CollectionCount;
             fixture.Customizations.Add(this);
         }
