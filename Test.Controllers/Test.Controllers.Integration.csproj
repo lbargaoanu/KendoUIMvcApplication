@@ -158,6 +158,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="bin\Debug\Install EntityFramework.bat" />
     <None Include="Infrastructure\GenerateTSQL.Utility.ttinclude" />
     <None Include="packages.config" />
     <None Include="Infrastructure\SSDLToSQLite3.tt">
