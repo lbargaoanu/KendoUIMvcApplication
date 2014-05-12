@@ -9,12 +9,12 @@ namespace Test.Controllers.Integration
     {
         private static void SeedDatabase(ProductServiceContext context, IFixture fixture)
         {
-            var categories = fixture.CreateMany<Category>().ToArray();
-            var suppliers = fixture.CreateMany<Supplier>().ToArray();
+            var categories = fixture.CreateMany<Category>();
+            var suppliers = fixture.CreateMany<Supplier>();
             fixture.Customize<Region>(c => c.Without(r => r.Territories));
-            var regions = fixture.CreateMany<Region>().ToArray();
+            var regions = fixture.CreateMany<Region>();
             fixture.Customize<Territory>(c => c.Without(r => r.Employees));
-            var territories = fixture.CreateMany<Territory>().ToArray();
+            var territories = fixture.CreateMany<Territory>();
 
             context.Categories.AddRange(categories);
             context.Suppliers.AddRange(suppliers);
