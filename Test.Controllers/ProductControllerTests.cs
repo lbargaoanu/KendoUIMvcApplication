@@ -38,17 +38,18 @@ namespace Test.Controllers.Integration
         //}
 
         //[Theory, MyAutoData]
-        //public void ShouldModifyTheProduct(Product modified, ProductServiceContext createContext, ProductServiceContext readContext)
+        //public void ShouldModifyTheProduct(Product modified, ProductServiceContext createContext, ProductServiceContext readContext, ModifyProductHandler handler)
         //{
         //    // arrange
         //    var product = createContext.AddAndSave(new Product());
         //    modified.Id = product.Id;
+        //    modified.RowVersion = product.RowVersion;
         //    Mapper.Map(modified, product);
         //    // act
-        //    new ModifyProductHandler().HandleAndSave(new ModifyProduct { Product = product });
+        //    handler.HandleAndSave(new ModifyProduct { Product = product });
         //    // assert
         //    product = readContext.Products.Find(product.Id);
-        //    product.ShouldBeEquivalentTo(modified);
+        //    product.ShouldBeQuasiEquivalentTo(modified);
         //}
 
         //public class DeleteProduct

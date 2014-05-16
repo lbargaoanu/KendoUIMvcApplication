@@ -1,4 +1,5 @@
-﻿using System.Data.Entity;
+﻿using System;
+using System.Data.Entity;
 using System.Linq;
 
 namespace KendoUIMvcApplication
@@ -28,9 +29,12 @@ namespace KendoUIMvcApplication
 
     public class ModifyProductHandler : ProductsCommandHandler<ModifyProduct>
     {
+        public IDisposable Disposable { get; set; }
+
         public override void Handle(ModifyProduct command)
         {
             Context.Entry(command.Product).State = EntityState.Modified;
+            Disposable.Dispose();
         }
     }
 }
