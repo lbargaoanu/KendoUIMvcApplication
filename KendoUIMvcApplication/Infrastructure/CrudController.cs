@@ -19,11 +19,16 @@ namespace KendoUIMvcApplication
 
     public class CrudController<TContext, TEntity> : BaseController where TEntity : VersionedEntity where TContext : DbContext
     {
+        [SetterProperty]
         public new TContext Context
         {
             get
             {
                 return (TContext)base.Context;
+            }
+            set
+            {
+                base.Context = value;
             }
         }
 
@@ -142,7 +147,6 @@ namespace KendoUIMvcApplication
 
     public class BaseController : ApiController
     {
-        [SetterProperty]
         public DbContext Context { get; set; }
 
         [SetterProperty]

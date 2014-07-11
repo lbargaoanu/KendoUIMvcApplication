@@ -7,7 +7,7 @@ using Xunit.Extensions;
 
 namespace Test.Controllers.Integration
 {
-    public class OrderControllerTests : ControllerTests<OrderController, Order>
+    public class OrderControllerTests : NorthwindControllerTests<OrderController, Order>
     {
         [Theory, MyAutoData]
         public override void ShouldDelete(Order newEntity, ProductServiceContext createContext, ProductServiceContext readContext)

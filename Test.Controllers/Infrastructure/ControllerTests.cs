@@ -1,4 +1,5 @@
-﻿using System.Data.Entity.Infrastructure;
+﻿using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using AutoMapper;
 using FluentAssertions;
@@ -8,10 +9,16 @@ using Xunit.Extensions;
 
 namespace Test.Controllers.Integration
 {
-    public abstract class ControllerTests<TController, TEntity> where TController : NorthwindController<TEntity>, new() where TEntity : VersionedEntity
+    public abstract class NorthwindControllerTests<TController, TEntity> : ControllerTests<TController, ProductServiceContext, TEntity>
+        where TController : CrudController<ProductServiceContext, TEntity>, new()
+        where TEntity : VersionedEntity
+    {
+    }
+
+    public abstract class ControllerTests<TController, TContext, TEntity> where TController : CrudController<TContext, TEntity>, new() where TEntity : VersionedEntity where TContext : DbContext
     {
         [Theory, MyAutoData]
-        public virtual void ShouldDelete(TEntity newEntity, ProductServiceContext createContext, ProductServiceContext readContext)
+        public virtual void ShouldDelete(TEntity newEntity, TContext createContext, TContext readContext)
         {
             // arrange
             createContext.AddAndSave(newEntity);
@@ -29,7 +36,7 @@ namespace Test.Controllers.Integration
         }
 
         [Theory, MyAutoData]
-        public virtual void ShouldAdd(TEntity newEntity, ProductServiceContext readContext)
+        public virtual void ShouldAdd(TEntity newEntity, TContext readContext)
         {
             // act
             var result = new TController().PostAndSave(newEntity);
@@ -40,7 +47,7 @@ namespace Test.Controllers.Integration
         }
 
         [Theory, MyAutoData]
-        public virtual void ShouldGetAll(TEntity[] newEntities, ProductServiceContext createContext)
+        public virtual void ShouldGetAll(TEntity[] newEntities, TContext createContext)
         {
             // arrange
             createContext.AddAndSave(newEntities);
@@ -51,7 +58,7 @@ namespace Test.Controllers.Integration
         }
 
         [Theory, MyAutoData]
-        public virtual void ShouldGetById(TEntity newEntity, ProductServiceContext createContext)
+        public virtual void ShouldGetById(TEntity newEntity, TContext createContext)
         {
             // arrange
             createContext.AddAndSave(newEntity);
@@ -71,7 +78,7 @@ namespace Test.Controllers.Integration
         }
 
         [Theory, MyAutoData]
-        public virtual void ShouldModify(TEntity newEntity, TEntity modified, ProductServiceContext createContext, ProductServiceContext readContext)
+        public virtual void ShouldModify(TEntity newEntity, TEntity modified, TContext createContext, TContext readContext)
         {
             // arrange
             createContext.AddAndSave(newEntity);
@@ -116,7 +123,7 @@ namespace Test.Controllers.Integration
         }
 
         [Theory, MyAutoData]
-        public virtual void ShouldNotModifyConcurrent(TEntity entity, ProductServiceContext createContext, ProductServiceContext modifyContext, byte[] rowVersion)
+        public virtual void ShouldNotModifyConcurrent(TEntity entity, TContext createContext, TContext modifyContext, byte[] rowVersion)
         {
             // arrange
             createContext.AddAndSave(entity);

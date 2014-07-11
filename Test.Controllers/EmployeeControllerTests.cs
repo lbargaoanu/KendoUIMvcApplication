@@ -11,7 +11,7 @@ using System.Data.Entity.Infrastructure;
 
 namespace Test.Controllers.Integration
 {
-    public class EmployeeControllerTests : ControllerTests<EmployeeController, Employee>
+    public class EmployeeControllerTests : NorthwindControllerTests<EmployeeController, Employee>
     {
         [Theory, MyAutoData]
         public override void ShouldAdd(Employee newEntity, ProductServiceContext readContext)

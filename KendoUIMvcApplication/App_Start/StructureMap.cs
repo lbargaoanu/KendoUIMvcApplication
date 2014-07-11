@@ -1,5 +1,4 @@
-﻿using System.Data.Entity;
-using StructureMap;
+﻿using StructureMap;
 using StructureMap.Web;
 
 namespace KendoUIMvcApplication
@@ -10,8 +9,7 @@ namespace KendoUIMvcApplication
         {
             ObjectFactory.Initialize(i => 
             {
-                i.For<DbContext>().HttpContextScoped().Use<ProductServiceContext>();
-                i.Forward<DbContext, ProductServiceContext>();
+                i.For<ProductServiceContext>().HttpContextScoped().Use<ProductServiceContext>();
                 i.Scan(s =>
                 {
                     s.AssemblyContainingType<IMediator>();

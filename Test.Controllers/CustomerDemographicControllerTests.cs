@@ -9,7 +9,7 @@ using Xunit.Extensions;
 
 namespace Test.Controllers.Integration
 {
-    public class CustomerDemographicControllerTests : ControllerTests<CustomerDemographicController, CustomerDemographic>
+    public class CustomerDemographicControllerTests : NorthwindControllerTests<CustomerDemographicController, CustomerDemographic>
     {
     }
 }

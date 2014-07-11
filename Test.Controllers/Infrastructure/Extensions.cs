@@ -39,8 +39,34 @@ namespace Test.Controllers.Integration
         private static StructureMapResolver CreateResolver()
         {
             KendoUIMvcApplication.StructureMap.Register();
-            ObjectFactory.Configure(c => c.For<ProductServiceContext>().Use(_=>TestProductServiceContext.New()));
+            ObjectFactory.Configure(c => c.For<ProductServiceContext>().Transient().Use(_ => TestProductServiceContext.New()));
             return new StructureMapResolver(ObjectFactory.Container);
+        }
+
+        public static void DeleteAndSave<TEntity>(this DbContext context, int id) where TEntity : VersionedEntity
+        {
+            var entities = context.Set<TEntity>();
+            entities.Remove(entities.Find(id));
+            context.SaveChanges();
+        }
+
+        public static TEntity AddAndSave<TEntity>(this DbContext context, params TEntity[] entities) where TEntity : VersionedEntity
+        {
+            var dbSet = context.Set<TEntity>();
+            foreach(var entity in entities)
+            {
+                dbSet.Add(entity);
+            }
+            context.SaveChanges();
+            return entities.First();
+        }
+
+        public static void DetachAll(this DbContext context)
+        {
+            foreach(var entry in context.ChangeTracker.Entries())
+            {
+                entry.State = EntityState.Detached;
+            }
         }
 
         public static bool IsInt(this Type type)
@@ -58,43 +84,45 @@ namespace Test.Controllers.Integration
             handler.Context.SaveChanges();
         }
 
-        public static IHttpActionResult PutAndSave<TEntity>(this NorthwindController<TEntity> controller, TEntity entity) where TEntity : VersionedEntity
+        public static IHttpActionResult PutAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, TEntity entity) where TEntity : VersionedEntity where TContext : DbContext
         {
             return controller.Action(c => c.Put(entity.Id, entity));
         }
 
-        public static IHttpActionResult PutAndSave<TEntity>(this NorthwindController<TEntity> controller, int id, TEntity entity) where TEntity : VersionedEntity
+        public static IHttpActionResult PutAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id, TEntity entity) where TEntity : VersionedEntity where TContext : DbContext
         {
             return controller.Action(c => c.Put(id, entity));
         }
 
-        public static IHttpActionResult DeleteAndSave<TEntity>(this NorthwindController<TEntity> controller, int id) where TEntity : VersionedEntity
+        public static IHttpActionResult DeleteAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id) where TEntity : VersionedEntity where TContext : DbContext
         {
             return controller.Action(c => c.Delete(id));
         }
 
-        public static IHttpActionResult PostAndSave<TEntity>(this NorthwindController<TEntity> controller, TEntity entity) where TEntity : VersionedEntity
+        public static IHttpActionResult PostAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, TEntity entity) where TEntity : VersionedEntity where TContext : DbContext
         {
             return controller.Action(c => c.Post(entity));
         }
 
-        public static DataSourceResult HandleGetAll<TEntity>(this NorthwindController<TEntity> controller) where TEntity : VersionedEntity
+        public static DataSourceResult HandleGetAll<TEntity, TContext>(this CrudController<TContext, TEntity> controller) where TEntity : VersionedEntity where TContext : DbContext
         {
             return controller.Action(c => c.GetAll(new DataSourceRequest{ PageSize = PageSize, Page = 2 }));
         }
 
-        public static IHttpActionResult HandleGetById<TEntity>(this NorthwindController<TEntity> controller, int id) where TEntity : VersionedEntity
+        public static IHttpActionResult HandleGetById<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id) where TEntity : VersionedEntity where TContext : DbContext
         {
             return controller.Action(c => c.Get(id));
         }
 
-        public static TResult Action<TController, TResult>(this TController controller, Func<TController, TResult> action) where TController : BaseController
+        public static TResult Action<TContext, TEntity, TResult>(this CrudController<TContext, TEntity> controller, Func<CrudController<TContext, TEntity>, TResult> action)
+            where TEntity : VersionedEntity
+            where TContext : DbContext
         {
             using(var scope = resolver.BeginScope())
             {
                 if(controller.Context == null)
                 {
-                    controller.Context = (TestProductServiceContext) scope.GetService(typeof(ProductServiceContext));
+                    controller.Context = (TContext) scope.GetService(typeof(TContext));
                     controller.Mediator = Mediator.Create(scope);
                 }
                 var result = action(controller);
@@ -381,32 +409,6 @@ namespace Test.Controllers.Integration
         {
             var fixture = CreateFixture();
             SeedDatabase(context, fixture);
-        }
-
-        public static void DeleteAndSave<TEntity>(this DbContext context, int id) where TEntity : VersionedEntity
-        {
-            var entities = context.Set<TEntity>();
-            entities.Remove(entities.Find(id));
-            context.SaveChanges();
-        }
-
-        public static TEntity AddAndSave<TEntity>(this DbContext context, params TEntity[] entities) where TEntity : VersionedEntity
-        {
-            var dbSet = context.Set<TEntity>();
-            foreach(var entity in entities)
-            {
-                dbSet.Add(entity);
-            }
-            context.SaveChanges();
-            return entities.First();
-        }
-
-        public static void DetachAll(this DbContext context)
-        {
-            foreach(var entry in context.ChangeTracker.Entries())
-            {
-                entry.State = EntityState.Detached;
-            }
         }
 
         public static ItemCollection GetSchema()

@@ -12,7 +12,7 @@
 <#@ import namespace="System.Text.RegularExpressions" #>
 <#+
 
-private static object x = Init();
+private static object _ = Init();
 
 private static object Init()
 {

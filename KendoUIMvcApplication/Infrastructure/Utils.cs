@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
@@ -176,7 +177,8 @@ namespace KendoUIMvcApplication
             {
                 return;
             }
-            var context = (DbContext)actionExecutedContext.Request.GetDependencyScope().GetService(typeof(DbContext));
+            var dependencyScope = (StructureMapDependencyScope) actionExecutedContext.Request.GetDependencyScope();
+            var context = dependencyScope.Container.Model.GetAllPossible<DbContext>().Single();
             context.SaveChanges();
         }
     }
