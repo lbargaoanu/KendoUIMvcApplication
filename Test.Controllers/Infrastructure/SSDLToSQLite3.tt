@@ -3,8 +3,6 @@
 <#@ assembly name="System.Data" #>
 <#@ assembly name="Microsoft.CSharp" #>
 <#@ assembly name="System.Configuration" #>
-<#@ assembly name="$(TargetDir)Test.Controllers.Integration.dll" #>
-<#@ assembly name="$(TargetDir)KendoUIMvcApplication.dll" #>
 <#@ assembly name="$(TargetDir)Infrastructure.Web.dll" #>
 <#@ assembly name="$(TargetDir)Infrastructure.Test.dll" #>
 <#@ assembly name="$(DevEnvDir)EntityFramework.dll" #>
@@ -13,7 +11,6 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Diagnostics" #>
-<#@ import namespace="Test.Controllers.Integration" #>
 <#@ import namespace="Microsoft.Data.Entity.Design.DatabaseGeneration" #>
 <#@ template language="C#" debug="false" #>
 <#@ include file="SetContext.ttinclude"#>

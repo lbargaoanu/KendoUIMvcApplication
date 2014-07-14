@@ -10,7 +10,6 @@
 <#@ import namespace="System.Data.Entity.Core.Metadata.Edm" #>
 <#@ import namespace="System.Runtime.Remoting.Messaging" #>
 <#@ import namespace="System.Data.Entity.Infrastructure" #>
-<#@ import namespace="KendoUIMvcApplication" #>
 <#@ import namespace="System.Text.RegularExpressions" #>
 <#+
 
