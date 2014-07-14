@@ -55,12 +55,12 @@
       <HintPath>..\packages\AutoMapper.3.2.1\lib\net40\AutoMapper.Net4.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EntityFramework.6.0.0\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+      <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EntityFramework.6.0.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="Kendo.Mvc, Version=2012.3.1114.340, Culture=neutral, PublicKeyToken=121fae78165ba3d4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -164,17 +164,12 @@
     <Compile Include="Controllers\SupplierController.cs" />
     <Compile Include="Controllers\TerritoryController.cs" />
     <Compile Include="Handlers\ModifyOrderHandler.cs" />
-    <Compile Include="Infrastructure\CrudController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ProductController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Handlers\ProductHandlers.cs" />
-    <Compile Include="Infrastructure\DataSourceRequestModelBinder.cs" />
-    <Compile Include="Infrastructure\Mediator.cs" />
-    <Compile Include="Infrastructure\StructureMapResolver.cs" />
-    <Compile Include="Infrastructure\Utils.cs" />
     <Compile Include="Migrations\201404021138249_Initial.cs" />
     <Compile Include="Migrations\201404021138249_Initial.Designer.cs">
       <DependentUpon>201404021138249_Initial.cs</DependentUpon>
@@ -279,7 +274,12 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Infrastructure.Web\Infrastructure.Web.csproj">
+      <Project>{2617f373-4523-45b3-9fbb-2665cd62a91b}</Project>
+      <Name>Infrastructure.Web</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

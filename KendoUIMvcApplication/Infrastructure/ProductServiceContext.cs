@@ -7,6 +7,7 @@ using System.Data.Common;
 using System.Data.Entity.Core.Objects;
 using System.Data.Entity.Infrastructure;
 using AutoMapper;
+using Infrastructure.Web;
 
 namespace KendoUIMvcApplication
 {
@@ -22,6 +23,10 @@ namespace KendoUIMvcApplication
     //{
     //}
 
+    public class NorthwindController<TEntity> : CrudController<ProductServiceContext, TEntity> where TEntity : Infrastructure.Web.VersionedEntity
+    {
+    }
+
     public abstract class ProductsQueryHandler<TQuery, TResponse> : QueryHandler<ProductServiceContext, TQuery, TResponse> where TQuery : IQuery<TResponse>
     {
     }
@@ -34,33 +39,14 @@ namespace KendoUIMvcApplication
     {
     }
 
-    public class ProductServiceContext : DbContext
+    public class ProductServiceContext : BaseContext
     {
-        protected internal ProductServiceContext(DbConnection connection) : base(connection, false)
+        public ProductServiceContext(DbConnection connection) : base(connection)
         {
-            Init();
         }
 
         public ProductServiceContext() : base("ProductServiceContext")
         {
-            Init();
-        }
-
-        private void Init()
-        {
-            Configuration.LazyLoadingEnabled = false;
-        }
-
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
-        {
-            modelBuilder.Types().Configure(c =>
-            {
-                c.Property("Id").HasColumnName(c.ClrType.Name + "ID");
-                if(Mapper.FindTypeMapFor(c.ClrType, c.ClrType) == null)
-                {
-                    Mapper.CreateMap(c.ClrType, c.ClrType).IgnoreProperties(c.ClrType, p=>p.IsNavigationProperty());
-                }
-            });
         }
 
         public virtual DbSet<Category> Categories { get; set; }

@@ -18,8 +18,8 @@ using System.Web.Http;
 using System.Web.Http.Results;
 using FluentAssertions;
 using FluentAssertions.Equivalency;
+using Infrastructure.Web;
 using Kendo.Mvc.UI;
-using KendoUIMvcApplication;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Kernel;
@@ -29,18 +29,46 @@ using Xunit;
 using Xunit.Extensions;
 using Xunit.Sdk;
 
-namespace Test.Controllers.Integration
+namespace Infrastructure.Test
 {
     public static class Extensions
     {
         private const int PageSize = 3;
-        private static readonly StructureMapResolver resolver = CreateResolver();
+        private static string[] IntegerTypes = new[] { "int", "bigint", "smallint", "tinyint", "bit" };
+        private static string[] RealTypes = new[] { "double", "decimal", "float", "real" };
 
-        private static StructureMapResolver CreateResolver()
+        public static string GetType(EdmProperty property)
         {
-            KendoUIMvcApplication.StructureMap.Register();
-            ObjectFactory.Configure(c => c.For<ProductServiceContext>().Transient().Use(_ => TestProductServiceContext.New()));
-            return new StructureMapResolver(ObjectFactory.Container);
+            TypeUsage typeUsage = property.TypeUsage;
+            if(typeUsage != null)
+            {
+                EdmType edmType = typeUsage.EdmType;
+                if(edmType != null)
+                {
+                    if(edmType.BaseType != null && edmType.BaseType.Name == "String")
+                    {
+                        return "TEXT";
+                    }
+                    var typeName = edmType.Name.ToLower();
+                    if(IntegerTypes.Contains(typeName))
+                    {
+                        return "INTEGER";
+                    }
+                    else if(RealTypes.Contains(typeName))
+                    {
+                        return "REAL";
+                    }
+                    else if(typeName == "guid")
+                    {
+                        return "UNIQUEIDENTIFIER";
+                    }
+                    else if(typeName == "datetime" || typeName == "datetimeoffset")
+                    {
+                        return "DATETIME";
+                    }
+                }
+            }
+            return "BLOB";
         }
 
         public static void DeleteAndSave<TEntity>(this DbContext context, int id) where TEntity : VersionedEntity
@@ -74,11 +102,11 @@ namespace Test.Controllers.Integration
             return type == typeof(int?) || type == typeof(int);
         }
 
-        public static void HandleAndSave<TCommand>(this CommandHandler<ProductServiceContext, TCommand> handler, TCommand command) where TCommand : ICommand
+        public static void HandleAndSave<TCommand, TContext>(this CommandHandler<TContext, TCommand> handler, TCommand command) where TCommand : ICommand where TContext : BaseContext
         {
             if(handler.Context == null)
             {
-                handler.Context = TestProductServiceContext.New();
+                handler.Context = TestContextFactory<TContext>.New();
             }
             handler.Handle(command);
             handler.Context.SaveChanges();
@@ -118,7 +146,7 @@ namespace Test.Controllers.Integration
             where TEntity : VersionedEntity
             where TContext : DbContext
         {
-            using(var scope = resolver.BeginScope())
+            using(var scope = new StructureMapDependencyScope(ObjectFactory.Container.GetNestedContainer()))
             {
                 if(controller.Context == null)
                 {
@@ -292,21 +320,69 @@ namespace Test.Controllers.Integration
         }
     }
 
-    public class TestProductServiceContext : ProductServiceContext
+    public static class TestContextFactory<TContext> where TContext : BaseContext
     {
         private static UInt32SequenceGenerator sequence = new UInt32SequenceGenerator();
-        private static readonly ProductServiceContext dbContext = CreateDatabase();
+        private static readonly TContext context = CreateDatabase();
 
-        public static ProductServiceContext New()
+        public static TContext New(DbConnection connection)
         {
-            return new TestProductServiceContext(dbContext.Database.Connection);
+            var context = (TContext) Activator.CreateInstance(typeof(TContext), connection);
+            context.Database.Log = s =>
+            {
+                if(Trace.Listeners.OfType<DefaultTraceListener>().Count() == 0)
+                {
+                    Trace.Listeners.Add(new DefaultTraceListener());
+                }
+                Trace.WriteLine(s);
+            };
+            context.ModelCreating += (e, args) =>
+            {
+                args.ModelBuilder.Properties<byte[]>().Configure(c => c.HasColumnType("BLOB").HasDatabaseGeneratedOption(DatabaseGeneratedOption.None));
+            };
+            context.SavingChanges += (e, args) =>
+            {
+                var modifiedEntities = new List<object>();
+                foreach(var entry in args.Context.ChangeTracker.Entries().Where(entry => entry.Entity is VersionedEntity))
+                {
+                    if(entry.State == EntityState.Modified)
+                    {
+                        modifiedEntities.Add(entry.Entity);
+                    }
+                    else if(entry.State == EntityState.Added)
+                    {
+                        SetRowVersion(entry.Entity);
+                    }
+                }
+                args.State = modifiedEntities;
+            };
+            context.SavedChanges += (e, args) =>
+            {
+                if(SetRowVersion((IEnumerable<object>)args.State))
+                {
+                    args.Context.SaveChanges();
+                }
+            };
+            return context;
         }
 
-        private static ProductServiceContext CreateDatabase()
+        public static StoreItemCollection GetSchema()
         {
+            var objContext = ((IObjectContextAdapter)New()).ObjectContext;
+            return (StoreItemCollection) objContext.MetadataWorkspace.GetItemCollection(DataSpace.SSpace);
+        }
+
+        public static TContext New()
+        {
+            return New(context.Database.Connection);
+        }
+
+        private static TContext CreateDatabase()
+        {
+            Database.SetInitializer<TContext>(null);
             var connection = new SQLiteConnection("FullUri=file::memory:?cache=shared;");
             connection.Open();
-            var context = new TestProductServiceContext(connection);
+            var context = New(connection);
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Infrastructure", "ssdltosqlite3.sql");
             string script;
             try
@@ -322,68 +398,20 @@ namespace Test.Controllers.Integration
             Assert.Equal(0, result);
             result = context.Database.ExecuteSqlCommand("PRAGMA foreign_keys = ON;");
             Assert.Equal(0, result);
-
-            ContextHelper.SeedDatabase(context);
-
-            context.SaveChanges();
-
             return context;
         }
 
-        private TestProductServiceContext(DbConnection connection) : base(connection)
+        public static void Initialize(Action<TContext, IFixture> seedDatabase = null)
         {
-            Init();
-        }
-
-        private TestProductServiceContext()
-        {
-            Init();
-        }
-
-        private void Init()
-        {
-            Database.SetInitializer<TestProductServiceContext>(null);
-            Database.Log = s =>
+            ObjectFactory.Configure(c => c.For<TContext>().Transient().Use(_ => New()));
+            if(seedDatabase != null)
             {
-                if(Trace.Listeners.OfType<DefaultTraceListener>().Count() == 0)
-                {
-                    Trace.Listeners.Add(new DefaultTraceListener());
-                }
-                Trace.WriteLine(s);
-            };
-        }
-
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-            modelBuilder.Properties<byte[]>().Configure(c => c.HasColumnType("BLOB").HasDatabaseGeneratedOption(DatabaseGeneratedOption.None));
-        }
-
-        public override int SaveChanges()
-        {
-            var modifiedEntities = new List<object>();
-            foreach(var entry in ChangeTracker.Entries().Where(e=>e.Entity is VersionedEntity))
-            {
-                if(entry.State == EntityState.Modified)
-                {
-                    modifiedEntities.Add(entry.Entity);
-                }
-                else if(entry.State == EntityState.Added)
-                {
-                    SetRowVersion(entry.Entity);
-                }
+                seedDatabase(context, ContextAutoDataAttribute.CreateFixture(typeof(TContext)));
             }
-
-            var result = base.SaveChanges();
-
-            if(SetRowVersion(modifiedEntities))
-            {
-                base.SaveChanges();
-            }
-            return result;
+            context.SaveChanges();
         }
 
-        private bool SetRowVersion(IEnumerable<object> entities)
+        private static bool SetRowVersion(IEnumerable<object> entities)
         {
             bool changes = false;
             foreach(var entity in entities)
@@ -400,73 +428,23 @@ namespace Test.Controllers.Integration
         }
     }
 
-    public static partial class ContextHelper
-    {
-        private static string[] IntegerTypes = new[] { "int", "bigint", "smallint", "tinyint", "bit" };
-        private static string[] RealTypes = new[] { "double", "decimal", "float", "real" };
-
-        public static void SeedDatabase(ProductServiceContext context)
-        {
-            var fixture = CreateFixture();
-            SeedDatabase(context, fixture);
-        }
-
-        public static ItemCollection GetSchema()
-        {
-            var dbContext = TestProductServiceContext.New();
-            var objContext = ((IObjectContextAdapter)dbContext).ObjectContext;
-            return objContext.MetadataWorkspace.GetItemCollection(DataSpace.SSpace);
-        }
-
-        public static string GetType(EdmProperty property)
-        {
-            TypeUsage typeUsage = property.TypeUsage;
-            if(typeUsage != null)
-            {
-                EdmType edmType = typeUsage.EdmType;
-                if(edmType != null)
-                {
-                    if(edmType.BaseType != null && edmType.BaseType.Name == "String")
-                    {
-                        return "TEXT";
-                    }
-                    var typeName = edmType.Name.ToLower();
-                    if(IntegerTypes.Contains(typeName))
-                    {
-                        return "INTEGER";
-                    }
-                    else if(RealTypes.Contains(typeName))
-                    {
-                        return "REAL";
-                    }
-                    else if(typeName == "guid")
-                    {
-                        return "UNIQUEIDENTIFIER";
-                    }
-                    else if(typeName == "datetime" || typeName == "datetimeoffset")
-                    {
-                        return "DATETIME";
-                    }
-                }
-            }
-            return "BLOB";
-        }
-
-        public static IFixture CreateFixture()
-        {
-            var fixture = new Fixture().Customize(new MyCustomization()).Customize(new AutoMoqCustomization());
-            fixture.Behaviors.Remove(fixture.Behaviors.OfType<ThrowingRecursionBehavior>().First());
-            fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-            return fixture;
-        }
-    }
-
-    public class MyAutoDataAttribute : AutoDataAttribute
+    public class ContextAutoDataAttribute : AutoDataAttribute
     {
         private static ConcurrentDictionary<Type, MethodInfo> customizeMethods = new ConcurrentDictionary<Type, MethodInfo>();
 
-        public MyAutoDataAttribute() : base(ContextHelper.CreateFixture())
+        public static IFixture CreateFixture(Type contextType)
         {
+            return Customize(new Fixture(), contextType);
+        }
+
+        private static IFixture Customize(IFixture fixture, Type contextType)
+        {
+            var customizationType = typeof(ContextCustomization<>).MakeGenericType(contextType);
+            var customization = (ICustomization)Activator.CreateInstance(customizationType);
+            fixture = fixture.Customize(customization).Customize(new AutoMoqCustomization());
+            fixture.Behaviors.Remove(fixture.Behaviors.OfType<ThrowingRecursionBehavior>().First());
+            fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            return fixture;
         }
 
         public MethodInfo GetCustomizeMethod(Type reflectedType)
@@ -485,6 +463,8 @@ namespace Test.Controllers.Integration
 
         public override IEnumerable<object[]> GetData(MethodInfo methodUnderTest, Type[] parameterTypes)
         {
+            var contextType = GetContextType(methodUnderTest);
+            Customize(Fixture, contextType);
             var data = base.GetData(methodUnderTest, parameterTypes);
             var reflectedType = methodUnderTest.ReflectedType;
             var customizeMethod = GetCustomizeMethod(reflectedType);
@@ -499,15 +479,25 @@ namespace Test.Controllers.Integration
             }
             return data;
         }
+
+        private static Type GetContextType(MethodInfo methodUnderTest)
+        {
+            Type testType = methodUnderTest.DeclaringType;
+            while(!testType.Name.StartsWith("ControllerTests`"))
+            {
+                testType = testType.BaseType;
+            }
+            return testType.GenericTypeArguments[1];
+        }
     }
 
-    public class MyCustomization : ICustomization, ISpecimenBuilder
+    public class ContextCustomization<TContext> : ICustomization, ISpecimenBuilder where TContext : BaseContext
     {
         public const int CollectionCount = 8;
 
         public void Customize(IFixture fixture)
         {
-            fixture.Customize<ProductServiceContext>(c => c.FromFactory(TestProductServiceContext.New).OmitAutoProperties());
+            fixture.Customize<TContext>(c => c.FromFactory(TestContextFactory<TContext>.New).OmitAutoProperties());
             fixture.RepeatCount = CollectionCount;
             fixture.Customizations.Add(this);
         }

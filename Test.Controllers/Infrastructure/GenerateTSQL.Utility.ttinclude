@@ -1,3 +1,5 @@
+<#@ import namespace="Infrastructure.Web" #>
+<#@ import namespace="Infrastructure.Test" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.IO" #>
 <#@ import namespace="System.Xml" #>
@@ -42,10 +44,6 @@ private StoreItemCollection Store
 {
     get
     {
-        if (_store == null)
-        {
-            _store = (StoreItemCollection) ContextHelper.GetSchema();
-        }
         return _store;
     }
 }

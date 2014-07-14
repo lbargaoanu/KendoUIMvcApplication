@@ -3,7 +3,7 @@ using System.Data.Entity;
 using System.Web.Http.Dependencies;
 using StructureMap.Attributes;
 
-namespace KendoUIMvcApplication
+namespace Infrastructure.Web
 {
     public class Mediator : IMediator
     {

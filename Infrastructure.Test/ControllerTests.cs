@@ -1,23 +1,20 @@
-﻿using System.Data.Entity;
+﻿using System;
+using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using AutoMapper;
 using FluentAssertions;
-using KendoUIMvcApplication;
+using Infrastructure.Web;
+using Ploeh.AutoFixture;
+using StructureMap;
 using Xunit;
 using Xunit.Extensions;
 
-namespace Test.Controllers.Integration
+namespace Infrastructure.Test
 {
-    public abstract class NorthwindControllerTests<TController, TEntity> : ControllerTests<TController, ProductServiceContext, TEntity>
-        where TController : CrudController<ProductServiceContext, TEntity>, new()
-        where TEntity : VersionedEntity
-    {
-    }
-
     public abstract class ControllerTests<TController, TContext, TEntity> where TController : CrudController<TContext, TEntity>, new() where TEntity : VersionedEntity where TContext : DbContext
     {
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public virtual void ShouldDelete(TEntity newEntity, TContext createContext, TContext readContext)
         {
             // arrange
@@ -35,7 +32,7 @@ namespace Test.Controllers.Integration
             new TController().DeleteAndSave(0).AssertIsNotFound();
         }
 
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public virtual void ShouldAdd(TEntity newEntity, TContext readContext)
         {
             // act
@@ -46,7 +43,7 @@ namespace Test.Controllers.Integration
             entities.Find(newEntity.Id).ShouldBeEquivalentTo(newEntity);
         }
 
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public virtual void ShouldGetAll(TEntity[] newEntities, TContext createContext)
         {
             // arrange
@@ -57,7 +54,7 @@ namespace Test.Controllers.Integration
             response.AssertIs<TEntity>(newEntities.Length);
         }
 
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public virtual void ShouldGetById(TEntity newEntity, TContext createContext)
         {
             // arrange
@@ -68,7 +65,7 @@ namespace Test.Controllers.Integration
             response.AssertIsOk(newEntity);
         }
 
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public virtual void ShouldNotGetByNonExistingId()
         {
             // act
@@ -77,7 +74,7 @@ namespace Test.Controllers.Integration
             response.AssertIsNotFound();
         }
 
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public virtual void ShouldModify(TEntity newEntity, TEntity modified, TContext createContext, TContext readContext)
         {
             // arrange
@@ -102,7 +99,7 @@ namespace Test.Controllers.Integration
             Mapper.Map(source, destination);
         }
 
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public virtual void ShouldNotModifyId(int id, TEntity modified)
         {
             // act
@@ -111,7 +108,7 @@ namespace Test.Controllers.Integration
             response.AssertIsBadRequest();
         }
 
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public virtual void ShouldNotModifyNotExisting(TEntity entity)
         {
             // arrange
@@ -122,7 +119,7 @@ namespace Test.Controllers.Integration
             response.AssertIsNotFound();
         }
 
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public virtual void ShouldNotModifyConcurrent(TEntity entity, TContext createContext, TContext modifyContext, byte[] rowVersion)
         {
             // arrange

@@ -1,4 +1,5 @@
-﻿using StructureMap;
+﻿using Infrastructure.Web;
+using StructureMap;
 using StructureMap.Web;
 
 namespace KendoUIMvcApplication
@@ -13,6 +14,7 @@ namespace KendoUIMvcApplication
                 i.Scan(s =>
                 {
                     s.AssemblyContainingType<IMediator>();
+                    s.AssemblyContainingType<ProductServiceContext>();
                     s.WithDefaultConventions();
                     s.AddAllTypesOf(typeof(IQueryHandler<,>));
                     s.AddAllTypesOf(typeof(ICommandHandler<,>));

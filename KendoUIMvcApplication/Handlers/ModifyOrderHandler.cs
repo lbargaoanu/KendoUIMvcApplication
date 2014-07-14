@@ -1,6 +1,7 @@
 ﻿using System.Data.Entity;
 using System.Linq;
 using AutoMapper;
+using Infrastructure.Web;
 
 namespace KendoUIMvcApplication
 {

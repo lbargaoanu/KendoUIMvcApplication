@@ -12,7 +12,7 @@ namespace KendoUIMvcApplication
     using System;
     using System.Collections.Generic;
     
-    public partial class Territory : VersionedEntity
+    public partial class Territory : Infrastructure.Web.VersionedEntity
     {
         public Territory()
         {

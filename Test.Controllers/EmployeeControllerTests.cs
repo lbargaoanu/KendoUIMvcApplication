@@ -8,12 +8,14 @@ using Xunit;
 using Xunit.Extensions;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using Infrastructure.Test;
+using Infrastructure.Web;
 
 namespace Test.Controllers.Integration
 {
     public class EmployeeControllerTests : NorthwindControllerTests<EmployeeController, Employee>
     {
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public override void ShouldAdd(Employee newEntity, ProductServiceContext readContext)
         {
             var territoryCount = readContext.Territories.Count();
@@ -24,7 +26,7 @@ namespace Test.Controllers.Integration
             AssertTerritories(newEntity.Id, newEntity, readContext, territoryCount);
         }
 
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public override void ShouldModify(Employee newEntity, Employee modified, ProductServiceContext createContext, ProductServiceContext readContext)
         {
             var territoryCount = readContext.Territories.Count();

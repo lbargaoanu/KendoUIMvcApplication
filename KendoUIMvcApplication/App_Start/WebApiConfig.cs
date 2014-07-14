@@ -1,6 +1,7 @@
 ﻿using System.Web.Http;
 using System.Web.Http.Dependencies;
 using System.Web.Http.ModelBinding;
+using Infrastructure.Web;
 using StructureMap;
 
 namespace KendoUIMvcApplication

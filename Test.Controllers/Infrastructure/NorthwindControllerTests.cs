@@ -1,13 +1,21 @@
-﻿using System.Linq;
+﻿using Infrastructure.Test;
+using Infrastructure.Web;
 using KendoUIMvcApplication;
 using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.Xunit;
 
 namespace Test.Controllers.Integration
 {
-    public static partial class ContextHelper
+    public abstract class NorthwindControllerTests<TController, TEntity> : ControllerTests<TController, ProductServiceContext, TEntity>
+        where TController : CrudController<ProductServiceContext, TEntity>, new()
+        where TEntity : VersionedEntity
     {
-        private static void SeedDatabase(ProductServiceContext context, IFixture fixture)
+        static NorthwindControllerTests()
+        {
+            KendoUIMvcApplication.StructureMap.Register();
+            TestContextFactory<ProductServiceContext>.Initialize(SeedDatabase);
+        }
+
+        public static void SeedDatabase(ProductServiceContext context, IFixture fixture)
         {
             var categories = fixture.CreateMany<Category>();
             var suppliers = fixture.CreateMany<Supplier>();

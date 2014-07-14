@@ -1,15 +1,17 @@
 using System.Linq;
 using FluentAssertions;
+using Infrastructure.Test;
 using KendoUIMvcApplication;
 using KendoUIMvcApplication.Controllers;
 using Xunit;
 using Xunit.Extensions;
+using Infrastructure.Web;
 
 namespace Test.Controllers.Integration
 {
     public class OrderControllerTests : NorthwindControllerTests<OrderController, Order>
     {
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public override void ShouldDelete(Order newEntity, ProductServiceContext createContext, ProductServiceContext readContext)
         {
             base.ShouldDelete(newEntity, createContext, readContext);
@@ -19,7 +21,7 @@ namespace Test.Controllers.Integration
             }
         }
 
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public void ShouldAddWithDetails(Order newEntity, OrderDetail[] details, ProductServiceContext readContext)
         {
             newEntity.OrderDetails.Add(details);
@@ -35,7 +37,7 @@ namespace Test.Controllers.Integration
             found.OrderDetails.ShouldAllBeEquivalentTo(details);
         }
 
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public void ShouldModifyWithDetails(Order newEntity, OrderDetail[] newDetails, Order modified, OrderDetail[] modifiedDetails, ProductServiceContext createContext, ProductServiceContext readContext)
         {
             newEntity.OrderDetails.Add(newDetails);
@@ -52,7 +54,7 @@ namespace Test.Controllers.Integration
             destination.OrderDetails = source.OrderDetails;
         }
 
-        [Theory, MyAutoData]
+        [Theory, ContextAutoData]
         public void ShouldModifyJustDetails(Order newEntity, OrderDetail[] newDetails, Order modified, OrderDetail[] modifiedDetails, ProductServiceContext createContext, ProductServiceContext readContext)
         {
             // arrange

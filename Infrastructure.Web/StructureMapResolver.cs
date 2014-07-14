@@ -4,7 +4,7 @@ using System.Linq;
 using System.Web.Http.Dependencies;
 using StructureMap;
 
-namespace KendoUIMvcApplication
+namespace Infrastructure.Web
 {
     public sealed class StructureMapResolver : StructureMapDependencyScope, IDependencyResolver
     {

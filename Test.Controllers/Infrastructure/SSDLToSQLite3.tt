@@ -5,6 +5,8 @@
 <#@ assembly name="System.Configuration" #>
 <#@ assembly name="$(TargetDir)Test.Controllers.Integration.dll" #>
 <#@ assembly name="$(TargetDir)KendoUIMvcApplication.dll" #>
+<#@ assembly name="$(TargetDir)Infrastructure.Web.dll" #>
+<#@ assembly name="$(TargetDir)Infrastructure.Test.dll" #>
 <#@ assembly name="$(DevEnvDir)EntityFramework.dll" #>
 <#@ assembly name="$(TargetDir)System.Web.Http.dll" #>
 <#@ assembly name="$(DevEnvDir)Microsoft.Data.Entity.Design.DatabaseGeneration.dll"#>
@@ -14,6 +16,7 @@
 <#@ import namespace="Test.Controllers.Integration" #>
 <#@ import namespace="Microsoft.Data.Entity.Design.DatabaseGeneration" #>
 <#@ template language="C#" debug="false" #>
+<#@ include file="SetContext.ttinclude"#>
 <#@ include file="GenerateTSQL.Utility.ttinclude"#>
 <#@ output extension = ".sql" #>
 -- --------------------------------------------------
@@ -23,6 +26,7 @@
 -- Dropping existing tables
 -- --------------------------------------------------
 <#
+
     foreach (EntitySet entitySet in Store.GetAllEntitySets())
     { 
         string tableName = Id(entitySet.GetTableName());        
@@ -65,7 +69,7 @@ CREATE TABLE [<#=tableName#>] (
 			var defaultBlock = property.DefaultValue == null ? string.Empty : " DEFAULT '" + property.DefaultValue.ToString() + "'";
 			
 #>
-    [<#=Id(property.Name)#>] <#=ContextHelper.GetType(property)#><#=autoBlock#><#=defaultBlock#><#=WriteNullable(property.Nullable)#><#=(p < propCount - 1) ? "," : ""#>
+    [<#=Id(property.Name)#>] <#=Extensions.GetType(property)#><#=autoBlock#><#=defaultBlock#><#=WriteNullable(property.Nullable)#><#=(p < propCount - 1) ? "," : ""#>
 <#
         }
 		

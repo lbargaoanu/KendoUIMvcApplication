@@ -13,7 +13,7 @@ using System.Web.Http.Filters;
 using AutoMapper;
 using Newtonsoft.Json;
 
-namespace KendoUIMvcApplication
+namespace Infrastructure.Web
 {
     public static class Utils
     {

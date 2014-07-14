@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Web.Http;
 using AutoMapper;
 using System.Diagnostics;
+using Infrastructure.Web;
 
 namespace KendoUIMvcApplication.Controllers
 {

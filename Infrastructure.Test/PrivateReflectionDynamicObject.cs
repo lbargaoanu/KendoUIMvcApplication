@@ -6,7 +6,7 @@ using System.Text;
 using System.Dynamic;
 using System.Reflection;
 
-namespace Test.Controllers.Integration
+namespace Infrastructure.Test
 {
     class PrivateReflectionDynamicObject : DynamicObject {
 

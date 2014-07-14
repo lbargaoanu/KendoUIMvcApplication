@@ -6,9 +6,9 @@ using Kendo.Mvc;
 using Kendo.Mvc.Infrastructure;
 using Kendo.Mvc.UI;
 
-namespace KendoUIMvcApplication
+namespace Infrastructure.Web
 {
-    class DataRequestModelBinderProvider : ModelBinderProvider
+    public class DataRequestModelBinderProvider : ModelBinderProvider
     {
         public override IModelBinder GetBinder(HttpConfiguration configuration, Type modelType)
         {

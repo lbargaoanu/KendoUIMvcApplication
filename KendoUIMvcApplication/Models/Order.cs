@@ -12,7 +12,7 @@ namespace KendoUIMvcApplication
     using System;
     using System.Collections.Generic;
     
-    public partial class Order : VersionedEntity
+    public partial class Order : Infrastructure.Web.VersionedEntity
     {
         public Order()
         {

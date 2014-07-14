@@ -150,10 +150,7 @@
     <Compile Include="CustomerControllerTests.cs" />
     <Compile Include="CustomerDemographicControllerTests.cs" />
     <Compile Include="EmployeeControllerTests.cs" />
-    <Compile Include="Infrastructure\ControllerTests.cs" />
-    <Compile Include="Infrastructure\Extensions.cs" />
-    <Compile Include="Infrastructure\PrivateReflectionDynamicObject.cs" />
-    <Compile Include="Infrastructure\SeedDatabase.cs" />
+    <Compile Include="Infrastructure\NorthwindControllerTests.cs" />
     <Compile Include="OrderControllerTests.cs" />
     <Compile Include="ProductControllerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -168,13 +165,23 @@
     </None>
     <None Include="bin\Debug\Install EntityFramework.bat" />
     <None Include="Infrastructure\GenerateTSQL.Utility.ttinclude" />
-    <None Include="packages.config" />
+    <None Include="Infrastructure\SetContext.ttinclude" />
     <None Include="Infrastructure\SSDLToSQLite3.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SSDLToSQLite3.sql</LastGenOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Infrastructure.Test\Infrastructure.Test.csproj">
+      <Project>{b4104094-bd3c-492a-9202-606ac31e81a8}</Project>
+      <Name>Infrastructure.Test</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Infrastructure.Web\Infrastructure.Web.csproj">
+      <Project>{2617f373-4523-45b3-9fbb-2665cd62a91b}</Project>
+      <Name>Infrastructure.Web</Name>
+    </ProjectReference>
     <ProjectReference Include="..\KendoUIMvcApplication\KendoUIMvcApplication.csproj">
       <Project>{fb94c812-4f8b-4493-be00-b9cc63962f28}</Project>
       <Name>KendoUIMvcApplication</Name>
@@ -197,6 +204,7 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
+  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

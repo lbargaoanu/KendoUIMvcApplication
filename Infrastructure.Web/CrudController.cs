@@ -11,12 +11,8 @@ using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using StructureMap.Attributes;
 
-namespace KendoUIMvcApplication
+namespace Infrastructure.Web
 {
-    public class NorthwindController<TEntity> : CrudController<ProductServiceContext, TEntity> where TEntity : VersionedEntity
-    {
-    }
-
     public class CrudController<TContext, TEntity> : BaseController where TEntity : VersionedEntity where TContext : DbContext
     {
         [SetterProperty]

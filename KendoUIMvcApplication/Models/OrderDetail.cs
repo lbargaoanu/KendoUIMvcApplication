@@ -11,6 +11,7 @@ namespace KendoUIMvcApplication
 {
     using System;
     using System.Collections.Generic;
+    using Infrastructure.Web;
     
     public partial class OrderDetail : Entity
     {
