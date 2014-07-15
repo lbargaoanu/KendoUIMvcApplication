@@ -11,7 +11,7 @@ using System.Data.Entity.Infrastructure;
 using Infrastructure.Test;
 using Infrastructure.Web;
 
-namespace Test.Controllers.Integration
+namespace Test.Northwind.Integration
 {
     public class EmployeeControllerTests : NorthwindControllerTests<EmployeeController, Employee>
     {

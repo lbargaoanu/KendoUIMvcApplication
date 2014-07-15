@@ -3,7 +3,7 @@ using Infrastructure.Web;
 using KendoUIMvcApplication;
 using Ploeh.AutoFixture;
 
-namespace Test.Controllers.Integration
+namespace Test.Northwind.Integration
 {
     public abstract class NorthwindControllerTests<TController, TEntity> : ControllerTests<TController, ProductServiceContext, TEntity>
         where TController : CrudController<ProductServiceContext, TEntity>, new()

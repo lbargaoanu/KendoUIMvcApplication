@@ -5,7 +5,7 @@ VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KendoUIMvcApplication", "KendoUIMvcApplication\KendoUIMvcApplication.csproj", "{FB94C812-4F8B-4493-BE00-B9CC63962F28}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Controllers.Integration", "Test.Controllers.Integration\Test.Controllers.Integration.csproj", "{B9DFE0F5-091C-4FD9-9A01-32B90063F5A8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Northwind.Integration", "Test.Northwind.Integration\Test.Northwind.Integration.csproj", "{B9DFE0F5-091C-4FD9-9A01-32B90063F5A8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Test", "Infrastructure.Test\Infrastructure.Test.csproj", "{B4104094-BD3C-492A-9202-606AC31E81A8}"
 EndProject

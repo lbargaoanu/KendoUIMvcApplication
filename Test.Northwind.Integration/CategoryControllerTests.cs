@@ -7,9 +7,9 @@ using KendoUIMvcApplication.Controllers;
 using Xunit;
 using Xunit.Extensions;
 
-namespace Test.Controllers.Integration
+namespace Test.Northwind.Integration
 {
-    public class ShipperControllerTests : NorthwindControllerTests<ShipperController, Shipper>
+    public class CategoryControllerTests : NorthwindControllerTests<CategoryController, Category>
     {
     }
 }

@@ -7,7 +7,7 @@ using Xunit;
 using Xunit.Extensions;
 using Infrastructure.Web;
 
-namespace Test.Controllers.Integration
+namespace Test.Northwind.Integration
 {
     public class OrderControllerTests : NorthwindControllerTests<OrderController, Order>
     {
