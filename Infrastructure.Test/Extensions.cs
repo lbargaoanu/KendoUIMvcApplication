@@ -148,8 +148,8 @@ namespace Infrastructure.Test
         {
             Assert.Equal(null, result.Errors);
             var data = (List<TEntity>) result.Data;
-            data.Count(e => e is TEntity).Should().Be(PageSize, "Sa intoarca PageSize entities.");
-            result.Total.Should().BeGreaterOrEqualTo(length, "Se poate sa avem date din alte teste.");
+            data.Count(e => e is TEntity).Should().Be(PageSize, "Sa intoarca PageSize entities");
+            result.Total.Should().BeGreaterOrEqualTo(length, "Se poate sa avem date din alte teste");
         }
 
         public static BadRequestResult AssertIsBadRequest(this IHttpActionResult result)

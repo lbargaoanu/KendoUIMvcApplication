@@ -2,6 +2,7 @@
 using System.Linq;
 using AutoMapper;
 using FluentAssertions;
+using Infrastructure.Test;
 using KendoUIMvcApplication;
 using KendoUIMvcApplication.Controllers;
 using Xunit;
@@ -25,7 +26,7 @@ namespace Test.Northwind.Integration
         //    base.ShouldModify(modified, createContext, readContext);
         //}
 
-        //[Theory, MyAutoData]
+        //[Theory, ContextAutoData]
         //public void ShouldReturnAllProducts(Product[] products, ProductServiceContext createContext, AllProductsHandler handler)
         //{
         //    // arrange
@@ -34,10 +35,11 @@ namespace Test.Northwind.Integration
         //    // act
         //    var response = handler.Handle(new ProductQuery { Discontinued = false });
         //    // assert
-        //    response.Data.Count().Should().BeGreaterOrEqualTo(count, "Se poate sa avem date din alte teste.");
+        //    response.Data.Count().Should().BeGreaterOrEqualTo(count, "Se poate sa avem date din alte teste");
+        //    Assert.True(response.Data.All(p => !p.Discontinued), "Sa nu fie nici una discontinued");
         //}
 
-        //[Theory, MyAutoData]
+        //[Theory, ContextAutoData]
         //public void ShouldModifyTheProduct(Product modified, ProductServiceContext createContext, ProductServiceContext readContext, ModifyProductHandler handler)
         //{
         //    // arrange
