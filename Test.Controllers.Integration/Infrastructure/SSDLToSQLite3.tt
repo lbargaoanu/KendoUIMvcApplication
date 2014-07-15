@@ -1,0 +1,110 @@
+<#@ assembly name="System.Xml" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ assembly name="Microsoft.CSharp" #>
+<#@ assembly name="System.Configuration" #>
+<#@ assembly name="$(TargetDir)Infrastructure.Web.dll" #>
+<#@ assembly name="$(TargetDir)Infrastructure.Test.dll" #>
+<#@ assembly name="$(DevEnvDir)EntityFramework.dll" #>
+<#@ assembly name="$(TargetDir)System.Web.Http.dll" #>
+<#@ assembly name="$(DevEnvDir)Microsoft.Data.Entity.Design.DatabaseGeneration.dll"#>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Diagnostics" #>
+<#@ import namespace="Microsoft.Data.Entity.Design.DatabaseGeneration" #>
+<#@ template language="C#" debug="false" #>
+<#@ include file="SetContext.ttinclude"#>
+<#@ include file="GenerateTSQL.Utility.ttinclude"#>
+<#@ output extension = ".sql" #>
+-- --------------------------------------------------
+-- Date Created: <#=DateTime.Now#>
+-- compatible SQLite
+-- --------------------------------------------------
+-- Dropping existing tables
+-- --------------------------------------------------
+<#
+
+    foreach (EntitySet entitySet in Store.GetAllEntitySets())
+    { 
+        string tableName = Id(entitySet.GetTableName());        
+         #>
+    
+DROP TABLE IF EXISTS [<#=tableName#>];
+<#
+    }
+#>
+
+-- --------------------------------------------------
+-- Creating all tables
+-- --------------------------------------------------
+
+<#
+    foreach (EntitySet entitySet in Store.GetAllEntitySets())
+    {        
+        string tableName = Id(entitySet.GetTableName());
+		
+		var propCount = entitySet.ElementType.Properties.Count;
+		var keys = entitySet.ElementType.GetKeyProperties() as IEnumerable<EdmProperty>;
+		var keyCount = keys.Count();
+		var autoIncreaseFieldName = string.Empty;		//try to find an auto incremented field in this instance type
+		if (keyCount == 1)
+		{
+			var first = keys.First();
+			var sgp = first.TypeUsage.Facets.FirstOrDefault(g => g.Name == "StoreGeneratedPattern") as Facet;
+			if (sgp != null && sgp.Value != null && sgp.Value.ToString() == "Identity")
+				autoIncreaseFieldName = first.Name;	
+		}		
+		
+#>
+-- Creating table '<#=tableName#>'
+CREATE TABLE [<#=tableName#>] (
+<#
+        for (int p = 0; p < propCount; p++)
+        {
+            EdmProperty property = entitySet.ElementType.Properties[p];
+			var autoBlock = property.Name == autoIncreaseFieldName ? " PRIMARY KEY AUTOINCREMENT" : "";
+			var defaultBlock = property.DefaultValue == null ? string.Empty : " DEFAULT '" + property.DefaultValue.ToString() + "'";
+			
+#>
+    [<#=Id(property.Name)#>] <#=Extensions.GetType(property)#><#=autoBlock#><#=defaultBlock#><#=WriteNullable(property.Nullable)#><#=(p < propCount - 1) ? "," : ""#>
+<#
+        }
+		
+		if (keyCount > 1)				//composite keys
+		{
+			#> , PRIMARY KEY (<#=WriteColumns(entitySet.ElementType.GetKeyProperties(), ',')#>)	
+		<#
+		}
+		
+		
+		
+		foreach (AssociationSet associationSet in Store.GetAllAssociationSets())
+		{
+			ReferentialConstraint constraint = associationSet.ElementType.ReferentialConstraints.Single();
+			
+			AssociationSetEnd dependentSetEnd = associationSet.AssociationSetEnds.Where(ase => ase.CorrespondingAssociationEndMember == constraint.ToRole).Single();
+			string dependentTableName = Id(dependentSetEnd.EntitySet.GetTableName());
+			if (dependentTableName != tableName)				//find the association realte this entity
+				continue;
+			
+			AssociationSetEnd principalSetEnd = associationSet.AssociationSetEnds.Where(ase => ase.CorrespondingAssociationEndMember == constraint.FromRole).Single();						
+			string principalTableName = Id(principalSetEnd.EntitySet.GetTableName());
+			
+			var onDelete = GetDeleteAction(constraint);
+			onDelete = onDelete == "NO ACTION" ? string.Empty : "ON DELETE " + onDelete;
+			#>
+			
+		,CONSTRAINT [<#=WriteFKConstraintName(constraint)#>]
+    		FOREIGN KEY (<#=WriteColumns(constraint.ToProperties, ',')#>)
+    		REFERENCES [<#=principalTableName#>] (<#=WriteColumns(constraint.FromProperties, ',')#>)					
+    		<#=onDelete#>
+			<#			
+		}
+#>
+);
+
+<# 
+    } 
+#>
+-- --------------------------------------------------
+-- --------------------------------------------------

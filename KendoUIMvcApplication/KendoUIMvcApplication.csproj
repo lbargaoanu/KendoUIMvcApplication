@@ -154,46 +154,15 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\StructureMap.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="Controllers\CategoryController.cs" />
-    <Compile Include="Controllers\CustomerController.cs" />
-    <Compile Include="Controllers\CustomerDemographicController.cs" />
-    <Compile Include="Controllers\EmployeeController.cs" />
-    <Compile Include="Controllers\OrderController.cs" />
-    <Compile Include="Controllers\RegionController.cs" />
-    <Compile Include="Controllers\ShipperController.cs" />
-    <Compile Include="Controllers\SupplierController.cs" />
-    <Compile Include="Controllers\TerritoryController.cs" />
-    <Compile Include="Handlers\ModifyOrderHandler.cs" />
     <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="Controllers\ProductController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Handlers\ProductHandlers.cs" />
     <Compile Include="Migrations\201404021138249_Initial.cs" />
     <Compile Include="Migrations\201404021138249_Initial.Designer.cs">
       <DependentUpon>201404021138249_Initial.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="ProductServiceContext.cs" />
-    <Compile Include="Models\Category.cs" />
-    <Compile Include="Models\Customer.cs" />
-    <Compile Include="Models\CustomerDemographic.cs" />
-    <Compile Include="Models\Results\CustOrderHist_Result.cs" />
-    <Compile Include="Models\Results\CustOrdersDetail_Result.cs" />
-    <Compile Include="Models\Results\CustOrdersOrders_Result.cs" />
-    <Compile Include="Models\Employee.cs" />
-    <Compile Include="Models\Results\Employee_Sales_by_Country_Result.cs" />
-    <Compile Include="Models\Order.cs" />
-    <Compile Include="Models\OrderDetail.cs" />
-    <Compile Include="Models\Product.cs" />
-    <Compile Include="Models\Region.cs" />
-    <Compile Include="Models\Results\SalesByCategory_Result.cs" />
-    <Compile Include="Models\Results\Sales_by_Year_Result.cs" />
-    <Compile Include="Models\Shipper.cs" />
-    <Compile Include="Models\Supplier.cs" />
-    <Compile Include="Models\Results\Ten_Most_Expensive_Products_Result.cs" />
-    <Compile Include="Models\Territory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -278,6 +247,10 @@
     <ProjectReference Include="..\Infrastructure.Web\Infrastructure.Web.csproj">
       <Project>{2617f373-4523-45b3-9fbb-2665cd62a91b}</Project>
       <Name>Infrastructure.Web</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Northwind\Northwind.csproj">
+      <Project>{9711d299-4e4d-4e78-80cf-5f65c787054c}</Project>
+      <Name>Northwind</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

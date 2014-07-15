@@ -10,7 +10,7 @@ namespace KendoUIMvcApplication
         {
             ObjectFactory.Initialize(i => 
             {
-                i.For<ProductServiceContext>().HttpContextScoped().Use<ProductServiceContext>();
+                i.For<ProductServiceContext>().HttpContextScoped().Use<ProductServiceContext>().SelectConstructor(()=>new ProductServiceContext());
                 i.Scan(s =>
                 {
                     s.AssemblyContainingType<IMediator>();

@@ -1,5 +1,0 @@
-﻿<#@ assembly name="$(TargetDir)KendoUIMvcApplication.dll" #>
-<#@ import namespace="KendoUIMvcApplication" #>
-<#
-	_store = TestContextFactory<ProductServiceContext>.GetSchema();
-#>

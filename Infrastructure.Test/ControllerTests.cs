@@ -12,7 +12,7 @@ using Xunit.Extensions;
 
 namespace Infrastructure.Test
 {
-    public abstract class ControllerTests<TController, TContext, TEntity> where TController : CrudController<TContext, TEntity>, new() where TEntity : VersionedEntity where TContext : DbContext
+    public abstract class ControllerTests<TController, TContext, TEntity> where TController : CrudController<TContext, TEntity>, new() where TEntity : VersionedEntity where TContext : BaseContext
     {
         [Theory, ContextAutoData]
         public virtual void ShouldDelete(TEntity newEntity, TContext createContext, TContext readContext)

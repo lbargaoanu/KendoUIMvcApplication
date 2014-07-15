@@ -13,7 +13,7 @@ using StructureMap.Attributes;
 
 namespace Infrastructure.Web
 {
-    public class CrudController<TContext, TEntity> : BaseController where TEntity : VersionedEntity where TContext : DbContext
+    public class CrudController<TContext, TEntity> : BaseController where TEntity : VersionedEntity where TContext : BaseContext
     {
         [SetterProperty]
         public new TContext Context
@@ -143,7 +143,7 @@ namespace Infrastructure.Web
 
     public class BaseController : ApiController
     {
-        public DbContext Context { get; set; }
+        public BaseContext Context { get; set; }
 
         [SetterProperty]
         public IMediator Mediator { get; set; }

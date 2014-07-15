@@ -112,39 +112,39 @@ namespace Infrastructure.Test
             handler.Context.SaveChanges();
         }
 
-        public static IHttpActionResult PutAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, TEntity entity) where TEntity : VersionedEntity where TContext : DbContext
+        public static IHttpActionResult PutAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, TEntity entity) where TEntity : VersionedEntity where TContext : BaseContext
         {
             return controller.Action(c => c.Put(entity.Id, entity));
         }
 
-        public static IHttpActionResult PutAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id, TEntity entity) where TEntity : VersionedEntity where TContext : DbContext
+        public static IHttpActionResult PutAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id, TEntity entity) where TEntity : VersionedEntity where TContext : BaseContext
         {
             return controller.Action(c => c.Put(id, entity));
         }
 
-        public static IHttpActionResult DeleteAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id) where TEntity : VersionedEntity where TContext : DbContext
+        public static IHttpActionResult DeleteAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id) where TEntity : VersionedEntity where TContext : BaseContext
         {
             return controller.Action(c => c.Delete(id));
         }
 
-        public static IHttpActionResult PostAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, TEntity entity) where TEntity : VersionedEntity where TContext : DbContext
+        public static IHttpActionResult PostAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, TEntity entity) where TEntity : VersionedEntity where TContext : BaseContext
         {
             return controller.Action(c => c.Post(entity));
         }
 
-        public static DataSourceResult HandleGetAll<TEntity, TContext>(this CrudController<TContext, TEntity> controller) where TEntity : VersionedEntity where TContext : DbContext
+        public static DataSourceResult HandleGetAll<TEntity, TContext>(this CrudController<TContext, TEntity> controller) where TEntity : VersionedEntity where TContext : BaseContext
         {
             return controller.Action(c => c.GetAll(new DataSourceRequest{ PageSize = PageSize, Page = 2 }));
         }
 
-        public static IHttpActionResult HandleGetById<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id) where TEntity : VersionedEntity where TContext : DbContext
+        public static IHttpActionResult HandleGetById<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id) where TEntity : VersionedEntity where TContext : BaseContext
         {
             return controller.Action(c => c.Get(id));
         }
 
         public static TResult Action<TContext, TEntity, TResult>(this CrudController<TContext, TEntity> controller, Func<CrudController<TContext, TEntity>, TResult> action)
             where TEntity : VersionedEntity
-            where TContext : DbContext
+            where TContext : BaseContext
         {
             using(var scope = new StructureMapDependencyScope(ObjectFactory.Container.GetNestedContainer()))
             {
