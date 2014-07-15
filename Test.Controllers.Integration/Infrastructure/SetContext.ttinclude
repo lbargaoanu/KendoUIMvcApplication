@@ -1,4 +1,4 @@
-﻿<#@ assembly name="$(TargetDir)KendoUIMvcApplication.dll" #>
+﻿<#@ assembly name="$(TargetDir)Northwind.dll" #>
 <#@ import namespace="KendoUIMvcApplication" #>
 <#
 	_store = TestContextFactory<ProductServiceContext>.GetSchema();
