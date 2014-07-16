@@ -4,7 +4,8 @@ using AutoMapper;
 using FluentAssertions;
 using Infrastructure.Test;
 using KendoUIMvcApplication;
-using KendoUIMvcApplication.Controllers;
+using Northwind.Controllers;
+using Northwind;
 using Xunit;
 using Xunit.Extensions;
 

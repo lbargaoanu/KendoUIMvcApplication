@@ -5,7 +5,7 @@ using System.Data.Entity.Core.Objects;
 using System.Data.Entity.Infrastructure;
 using Infrastructure.Web;
 
-namespace KendoUIMvcApplication
+namespace Northwind
 {
     public class NorthwindController<TEntity> : CrudController<ProductServiceContext, TEntity> where TEntity : VersionedEntity
     {

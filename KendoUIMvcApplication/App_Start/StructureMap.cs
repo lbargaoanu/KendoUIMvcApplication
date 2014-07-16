@@ -1,4 +1,5 @@
 ﻿using Infrastructure.Web;
+using Northwind;
 using StructureMap;
 using StructureMap.Web;
 

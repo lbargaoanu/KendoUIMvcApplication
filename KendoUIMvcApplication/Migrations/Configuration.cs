@@ -4,15 +4,16 @@ namespace KendoUIMvcApplication.Migrations
     using System.Data.Entity;
     using System.Data.Entity.Migrations;
     using System.Linq;
+    using Northwind;
 
-    public sealed class Configuration : DbMigrationsConfiguration<KendoUIMvcApplication.ProductServiceContext>
+    public sealed class Configuration : DbMigrationsConfiguration<ProductServiceContext>
     {
         public Configuration()
         {
             AutomaticMigrationsEnabled = false;
         }
 
-        protected override void Seed(KendoUIMvcApplication.ProductServiceContext context)
+        protected override void Seed(ProductServiceContext context)
         {
             //  This method will be called after migrating to the latest version.
 

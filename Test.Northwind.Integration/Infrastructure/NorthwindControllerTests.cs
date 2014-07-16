@@ -1,6 +1,7 @@
 ﻿using Infrastructure.Test;
 using Infrastructure.Web;
 using KendoUIMvcApplication;
+using Northwind;
 using Ploeh.AutoFixture;
 
 namespace Test.Northwind.Integration
