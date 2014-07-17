@@ -17,6 +17,8 @@ namespace Northwind
 
     public class AllProductsHandler : ProductsQueryHandler<ProductQuery, ProductResponse>
     {
+        public IDisposable Disposable { get; set; }
+
         public override ProductResponse Handle(ProductQuery query)
         {
             return new ProductResponse { Data = Context.Products.Where(p => p.Discontinued == query.Discontinued) };

@@ -12,14 +12,14 @@ namespace Northwind.Controllers
             return entities.Include(p=>p.Category).Include(p=>p.Supplier);
         }
 
-        //public override IQueryable<Product> GetAll()
-        //{
-        //    return Get(new ProductQuery { Discontinued = false }).Data;
-        //}
+        public override IQueryable<Product> GetAll()
+        {
+            return Get(new ProductQuery { Discontinued = false }).Data;
+        }
 
-        //protected override void Modify(Product entity)
-        //{
-        //    Send(new ModifyProduct { Product = entity });
-        //}
+        protected override void Modify(Product entity)
+        {
+            Send(new ModifyProduct { Product = entity });
+        }
     }
 }

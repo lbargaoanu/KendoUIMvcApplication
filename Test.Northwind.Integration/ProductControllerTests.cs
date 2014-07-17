@@ -17,6 +17,12 @@ namespace Test.Northwind.Integration
         {
         }
 
+        [Theory, ContextAutoData]
+        public override void ShouldGetAll(Product[] newEntities, ProductServiceContext createContext, Func<Product, bool> where)
+        {
+            base.ShouldGetAll(newEntities, createContext, p => !p.Discontinued);
+        }
+
         //[Theory, MyAutoData]
         //public override void ShouldModify(Product modified, ProductServiceContext createContext, ProductServiceContext readContext)
         //{

@@ -109,7 +109,6 @@ namespace Infrastructure.Test
 
         public static void Initialize(Action<TContext, IFixture> seedDatabase = null)
         {
-            ObjectFactory.Configure(c => c.For<TContext>().Transient().Use(_ => New()));
             if(seedDatabase != null)
             {
                 seedDatabase(context, ContextAutoDataAttribute.CreateFixture(typeof(TContext)));

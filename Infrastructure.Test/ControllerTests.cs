@@ -44,14 +44,14 @@ namespace Infrastructure.Test
         }
 
         [Theory, ContextAutoData]
-        public virtual void ShouldGetAll(TEntity[] newEntities, TContext createContext)
+        public virtual void ShouldGetAll(TEntity[] newEntities, TContext createContext, Func<TEntity, bool> where = null)
         {
             // arrange
             createContext.AddAndSave(newEntities);
             // act
             var response = new TController().HandleGetAll();
             // assert
-            response.AssertIs<TEntity>(newEntities.Length);
+            response.AssertIs<TEntity>(newEntities, where);
         }
 
         [Theory, ContextAutoData]

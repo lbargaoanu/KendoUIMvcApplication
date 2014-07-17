@@ -4,11 +4,14 @@ using System.Data.Entity;
 using System.Data.Entity.Core.Metadata.Edm;
 using System.Linq;
 using System.Web.Http;
+using System.Web.Http.Dependencies;
 using System.Web.Http.Results;
 using FluentAssertions;
 using FluentAssertions.Equivalency;
 using Infrastructure.Web;
 using Kendo.Mvc.UI;
+using Ploeh.AutoFixture;
+using Ploeh.AutoFixture.Kernel;
 using StructureMap;
 using Xunit;
 using Xunit.Extensions;
@@ -19,6 +22,7 @@ namespace Infrastructure.Test
     public static class Extensions
     {
         private const int PageSize = 3;
+        private const int PageCount = 2;
         private static string[] IntegerTypes = new[] { "int", "bigint", "smallint", "tinyint", "bit" };
         private static string[] RealTypes = new[] { "double", "decimal", "float", "real" };
 
@@ -119,7 +123,7 @@ namespace Infrastructure.Test
 
         public static DataSourceResult HandleGetAll<TEntity, TContext>(this CrudController<TContext, TEntity> controller) where TEntity : VersionedEntity where TContext : BaseContext
         {
-            return controller.Action(c => c.GetAll(new DataSourceRequest{ PageSize = PageSize, Page = 2 }));
+            return controller.Action(c => c.GetAll(new DataSourceRequest{ PageSize = PageSize, Page = PageCount }));
         }
 
         public static IHttpActionResult HandleGetById<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id) where TEntity : VersionedEntity where TContext : BaseContext
@@ -131,11 +135,11 @@ namespace Infrastructure.Test
             where TEntity : VersionedEntity
             where TContext : BaseContext
         {
-            using(var scope = new StructureMapDependencyScope(ObjectFactory.Container.GetNestedContainer()))
+            using(var scope = new AutofixtureDependencyScope<TContext>())
             {
                 if(controller.Context == null)
                 {
-                    controller.Context = (TContext) scope.GetService(typeof(TContext));
+                    controller.Context = (TContext)scope.GetService(typeof(TContext));
                     controller.Mediator = Mediator.Create(scope);
                 }
                 var result = action(controller);
@@ -144,12 +148,19 @@ namespace Infrastructure.Test
             }
         }
 
-        public static void AssertIs<TEntity>(this DataSourceResult result, int length)
+        public static void AssertIs<TEntity>(this DataSourceResult result, TEntity[] entities, Func<TEntity, bool> where = null)
         {
+             if(where == null)
+            {
+                where = e => true;
+            }
+            var length = entities.Count(where);
             Assert.Equal(null, result.Errors);
             var data = (List<TEntity>) result.Data;
-            data.Count(e => e is TEntity).Should().Be(PageSize, "Sa intoarca PageSize entities");
+            var expectedCount = (length >= PageCount * PageSize) ? PageSize : length - PageSize;
+            data.Count(e => e is TEntity).Should().BeGreaterOrEqualTo(expectedCount, "Sa intoarca cel putin PageSize entities (se poate sa avem date din alte teste)");
             result.Total.Should().BeGreaterOrEqualTo(length, "Se poate sa avem date din alte teste");
+            Assert.True(data.All(where), "Toate trebuie sa indeplineasca conditia de filtru");
         }
 
         public static BadRequestResult AssertIsBadRequest(this IHttpActionResult result)
@@ -249,6 +260,49 @@ namespace Infrastructure.Test
                     }
                 }
                 yield return command;
+            }
+        }
+
+        public static object Create(this IFixture fixture, Type type)
+        {
+            var context = new SpecimenContext(fixture);
+            return context.Resolve(type);
+        }
+    }
+
+    public class AutofixtureDependencyScope<TContext> : IDependencyScope
+    {
+        private List<IDisposable> disposables = new List<IDisposable>();
+        private readonly IFixture fixture;
+
+        public AutofixtureDependencyScope()
+        {
+            fixture = ContextAutoDataAttribute.CreateFixture(typeof(TContext));
+            fixture.Freeze<TContext>();
+        }
+
+        public object GetService(Type serviceType)
+        {
+            var realType = ObjectFactory.Container.Model.DefaultTypeFor(serviceType);
+            var service = fixture.Create(realType);
+            var disposable = service as IDisposable;
+            if(disposable != null)
+            {
+                disposables.Add(disposable);
+            }
+            return service;
+        }
+
+        public IEnumerable<object> GetServices(Type serviceType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            foreach(var disposable in disposables)
+            {
+                disposable.Dispose();
             }
         }
     }
