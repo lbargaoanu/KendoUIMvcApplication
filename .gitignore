@@ -9,6 +9,7 @@
 # Build results
 
 [Dd]ebug/
+!*.bat
 [Rr]elease/
 x64/
 build/
