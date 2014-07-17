@@ -9,7 +9,6 @@
 # Build results
 
 [Dd]ebug/
-!*.bat
 [Rr]elease/
 x64/
 build/
@@ -18,6 +17,7 @@ build/
 
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/
+![Bb]in/[Dd]ebug/*.bat
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
