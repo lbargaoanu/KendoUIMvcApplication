@@ -140,7 +140,7 @@ namespace Infrastructure.Test
                 if(controller.Context == null)
                 {
                     controller.Context = (TContext)scope.GetService(typeof(TContext));
-                    controller.Mediator = Mediator.Create(scope);
+                    controller.Mediator = new Mediator(scope);
                 }
                 var result = action(controller);
                 controller.Context.SaveChanges();

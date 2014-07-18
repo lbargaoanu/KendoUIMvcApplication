@@ -9,12 +9,7 @@ namespace Infrastructure.Web
     {
         public IDependencyScope DependencyResolver { get; private set; }
 
-        public static Mediator Create(IDependencyScope dependencyScope)
-        {
-            return new Mediator(null) { DependencyResolver = dependencyScope };
-        }
-
-        public Mediator(IDependencyResolver dependencyResolver)
+        public Mediator(IDependencyScope dependencyResolver)
         {
             this.DependencyResolver = dependencyResolver;
         }
