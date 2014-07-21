@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.Entity;
 using System.Web.Http.Dependencies;
+using StructureMap;
 using StructureMap.Attributes;
 
 namespace Infrastructure.Web
@@ -9,9 +10,15 @@ namespace Infrastructure.Web
     {
         public IDependencyScope DependencyResolver { get; private set; }
 
-        public Mediator(IDependencyScope dependencyResolver)
+        public Mediator(IDependencyScope dependencyScope)
         {
-            this.DependencyResolver = dependencyResolver;
+            DependencyResolver = dependencyScope;
+        }
+
+        [DefaultConstructor]
+        public Mediator(IDependencyResolver dependencyResolver)
+        {
+            DependencyResolver = dependencyResolver;
         }
 
         public TResult Get<TResult>(IQuery<TResult> request)
@@ -58,7 +65,9 @@ namespace Infrastructure.Web
         TResponse Execute(TQuery query);
     }
 
-    public abstract class QueryHandler<TContext, TQuery, TResponse> : IQueryHandler<TQuery, TResponse> where TQuery : IQuery<TResponse> where TContext : DbContext
+    public abstract class QueryHandler<TContext, TQuery, TResponse> : IQueryHandler<TQuery, TResponse>
+        where TQuery : IQuery<TResponse>
+        where TContext : DbContext
     {
         [SetterProperty]
         public TContext Context { get; set; }
@@ -76,7 +85,9 @@ namespace Infrastructure.Web
         TResult Execute(TCommand command);
     }
 
-    public abstract class CommandHandler<TContext, TCommand, TResult> : ICommandHandler<TCommand, TResult> where TCommand : ICommand<TResult> where TContext : DbContext
+    public abstract class CommandHandler<TContext, TCommand, TResult> : ICommandHandler<TCommand, TResult>
+        where TCommand : ICommand<TResult>
+        where TContext : DbContext
     {
         [SetterProperty]
         public TContext Context { get; set; }
@@ -89,7 +100,9 @@ namespace Infrastructure.Web
         public abstract TResult Handle(TCommand command);
     }
 
-    public abstract class CommandHandler<TContext, TCommand> : ICommandHandler<TCommand, Void> where TCommand : ICommand where TContext : DbContext
+    public abstract class CommandHandler<TContext, TCommand> : ICommandHandler<TCommand, Void>
+        where TCommand : ICommand
+        where TContext : DbContext
     {
         public Void Execute(TCommand command)
         {
