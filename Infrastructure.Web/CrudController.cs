@@ -53,12 +53,12 @@ namespace Infrastructure.Web
         [NonAction]
         public virtual IQueryable<TEntity> GetAllEntities(Expression<Func<TEntity, bool>> where)
         {
-            IQueryable<TEntity> entiites = Context.Set<TEntity>();
+            IQueryable<TEntity> entities = Context.Set<TEntity>();
             if(where != null)
             {
-                entiites = entiites.Where(where);
+                entities = entities.Where(where);
             }
-            return Include(entiites).AsNoTracking();
+            return Include(entities).AsNoTracking();
         }
 
         public IHttpActionResult Get(int id)
