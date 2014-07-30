@@ -13,20 +13,13 @@ using StructureMap.Attributes;
 
 namespace Infrastructure.Web
 {
-    public class CrudController<TContext, TEntity> : BaseController where TEntity : VersionedEntity where TContext : BaseContext
+    public class CrudController<TContext, TEntity> : ApiController where TEntity : VersionedEntity where TContext : BaseContext
     {
         [SetterProperty]
-        public new TContext Context
-        {
-            get
-            {
-                return (TContext)base.Context;
-            }
-            set
-            {
-                base.Context = value;
-            }
-        }
+        public IMediator Mediator { get; set; }
+
+        [SetterProperty]
+        public TContext Context { get; set; }
 
         protected void SetRowVersion(TEntity source, TEntity destination)
         {
@@ -150,14 +143,6 @@ namespace Infrastructure.Web
         {
             return Context.Set<TEntity>().Count(e => e.Id == id) > 0;
         }
-    }
-
-    public class BaseController : ApiController
-    {
-        public BaseContext Context { get; set; }
-
-        [SetterProperty]
-        public IMediator Mediator { get; set; }
 
         [NonAction]
         public TResponse Get<TResponse>(IQuery<TResponse> query)
