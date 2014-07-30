@@ -12,7 +12,7 @@ namespace Northwind.Controllers
             return entities.Include(p=>p.Category).Include(p=>p.Supplier);
         }
 
-        public override IQueryable<Product> GetAll()
+        public override IQueryable<Product> GetAllEntities()
         {
             return Get(new ProductQuery { Discontinued = false }).Data;
         }

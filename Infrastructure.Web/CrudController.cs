@@ -2,8 +2,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
 using System.Web.Http.Results;
@@ -41,13 +41,24 @@ namespace Infrastructure.Web
 
         public DataSourceResult GetAll([ModelBinder] DataSourceRequest request)
         {
-            return GetAll().ToDataSourceResult(request);
+            return GetAllEntities().ToDataSourceResult(request);
         }
 
         [NonAction]
-        public virtual IQueryable<TEntity> GetAll()
+        public virtual IQueryable<TEntity> GetAllEntities()
         {
-            return Include(Context.Set<TEntity>()).AsNoTracking();
+            return GetAllEntities(null);
+        }
+
+        [NonAction]
+        public virtual IQueryable<TEntity> GetAllEntities(Expression<Func<TEntity, bool>> where)
+        {
+            IQueryable<TEntity> entiites = Context.Set<TEntity>();
+            if(where != null)
+            {
+                entiites = entiites.Where(where);
+            }
+            return Include(entiites).AsNoTracking();
         }
 
         public IHttpActionResult Get(int id)

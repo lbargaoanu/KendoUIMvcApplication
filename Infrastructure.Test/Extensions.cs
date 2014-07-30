@@ -148,7 +148,7 @@ namespace Infrastructure.Test
             }
         }
 
-        public static void AssertIs<TEntity>(this DataSourceResult result, TEntity[] entities, Func<TEntity, bool> where = null)
+        public static void AssertIs<TEntity>(this DataSourceResult result, TEntity[] entities, Func<TEntity, bool> where)
         {
              if(where == null)
             {

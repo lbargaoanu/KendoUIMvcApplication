@@ -14,6 +14,8 @@ namespace Infrastructure.Test
 {
     public abstract class ControllerTests<TController, TContext, TEntity> where TController : CrudController<TContext, TEntity>, new() where TEntity : VersionedEntity where TContext : BaseContext
     {
+        private static readonly Func<TEntity, bool> True = e => true;
+
         [Theory, ContextAutoData]
         public virtual void ShouldDelete(TEntity newEntity, TContext createContext, TContext readContext)
         {
@@ -51,7 +53,7 @@ namespace Infrastructure.Test
             // act
             var response = new TController().HandleGetAll();
             // assert
-            response.AssertIs<TEntity>(newEntities, where);
+            response.AssertIs<TEntity>(newEntities, where ?? True);
         }
 
         [Theory, ContextAutoData]
