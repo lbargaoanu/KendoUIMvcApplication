@@ -32,7 +32,7 @@ namespace Infrastructure.Web
             return entities;
         }
 
-        public DataSourceResult GetAll([ModelBinder] DataSourceRequest request)
+        public virtual DataSourceResult GetAll(DataSourceRequest request)
         {
             return GetAllEntities().ToDataSourceResult(request);
         }

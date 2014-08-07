@@ -2,6 +2,7 @@
 using System.Web.Http.Dependencies;
 using System.Web.Http.ModelBinding;
 using Infrastructure.Web;
+using Kendo.Mvc.UI;
 using StructureMap;
 
 namespace KendoUIMvcApplication
@@ -14,8 +15,7 @@ namespace KendoUIMvcApplication
             config.DependencyResolver = new StructureMapResolver(ObjectFactory.Container);
             ObjectFactory.Configure(c => c.For<IDependencyResolver>().Use(config.DependencyResolver));
 
-            config.Services.Insert(typeof(ModelBinderProvider), 0, // Insert at front to ensure other catch-all binders don’t claim it first
-                                                new DataRequestModelBinderProvider());
+            config.BindParameter(typeof(DataSourceRequest), new Infrastructure.Web.DataSourceRequestModelBinder());
             config.Formatters.JsonFormatter.SerializerSettings.Converters.Add(new JQueryArrayConverter());
             config.Filters.Add(new SaveChangesFilter());
             config.Filters.Add(new ValidateModelAttribute());

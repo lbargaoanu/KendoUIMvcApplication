@@ -2,11 +2,21 @@
 using System.Linq;
 using System.Data.Entity;
 using System.Web.Http;
+using Kendo.Mvc.UI;
+using WebApi.OutputCache.V2;
+using System.Web.Http.ModelBinding;
 
 namespace Northwind.Controllers
 {
     public class ProductController : NorthwindController<Product>
     {
+        //[CacheOutput(ServerTimeSpan = int.MaxValue)]
+        //[CacheOutput(ClientTimeSpan = 5, MustRevalidate = true)]
+        public override DataSourceResult GetAll(DataSourceRequest request)
+        {
+            return base.GetAll(request);
+        }
+
         public override IQueryable<Product> Include(IQueryable<Product> entities)
         {
             return entities.Include(p=>p.Category).Include(p=>p.Supplier);
