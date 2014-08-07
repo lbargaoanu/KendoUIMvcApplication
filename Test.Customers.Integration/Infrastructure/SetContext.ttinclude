@@ -1,0 +1,4 @@
+﻿<#@ assembly name="$(TargetDir)Customers.dll" #>
+<#
+	_store = TestContextFactory<Customers.CustomerContext>.GetSchema();
+#>
