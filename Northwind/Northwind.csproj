@@ -107,8 +107,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Product\CategoryController.cs" />
-    <Compile Include="Customer\CustomerController.cs" />
-    <Compile Include="Customer\CustomerDemographicController.cs" />
     <Compile Include="Employee\EmployeeController.cs" />
     <Compile Include="Order\OrderController.cs" />
     <Compile Include="Product\ProductController.cs" />
@@ -119,8 +117,6 @@
     <Compile Include="Order\ModifyOrderHandler.cs" />
     <Compile Include="Product\ProductHandlers.cs" />
     <Compile Include="Product\Category.cs" />
-    <Compile Include="Customer\Customer.cs" />
-    <Compile Include="Customer\CustomerDemographic.cs" />
     <Compile Include="Employee\Employee.cs" />
     <Compile Include="Order\Order.cs" />
     <Compile Include="Order\OrderDetail.cs" />
@@ -144,6 +140,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj">
+      <Project>{1462cc57-42d7-476c-bdc4-715effd274bd}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Infrastructure.Web\Infrastructure.Web.csproj">
       <Project>{2617f373-4523-45b3-9fbb-2665cd62a91b}</Project>
       <Name>Infrastructure.Web</Name>

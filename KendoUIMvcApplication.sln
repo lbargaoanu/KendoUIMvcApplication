@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KendoUIMvcApplication", "KendoUIMvcApplication\KendoUIMvcApplication.csproj", "{FB94C812-4F8B-4493-BE00-B9CC63962F28}"
 EndProject
@@ -12,6 +12,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.Web", "Infrastructure.Web\Infrastructure.Web.csproj", "{2617F373-4523-45B3-9FBB-2665CD62A91B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Northwind", "Northwind\Northwind.csproj", "{9711D299-4E4D-4E78-80CF-5F65C787054C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{1462CC57-42D7-476C-BDC4-715EFFD274BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Customers", "Northwind.Cutomers\Customers.csproj", "{A516B29C-4D42-4F2F-AEB0-40E366F10694}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Customers.Integration", "Test.Customers.Integration\Test.Customers.Integration.csproj", "{C3672BD6-24F1-4C02-A7DD-C1AE8006794C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +45,18 @@ Global
 		{9711D299-4E4D-4E78-80CF-5F65C787054C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9711D299-4E4D-4E78-80CF-5F65C787054C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9711D299-4E4D-4E78-80CF-5F65C787054C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1462CC57-42D7-476C-BDC4-715EFFD274BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1462CC57-42D7-476C-BDC4-715EFFD274BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1462CC57-42D7-476C-BDC4-715EFFD274BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1462CC57-42D7-476C-BDC4-715EFFD274BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A516B29C-4D42-4F2F-AEB0-40E366F10694}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A516B29C-4D42-4F2F-AEB0-40E366F10694}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A516B29C-4D42-4F2F-AEB0-40E366F10694}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A516B29C-4D42-4F2F-AEB0-40E366F10694}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3672BD6-24F1-4C02-A7DD-C1AE8006794C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3672BD6-24F1-4C02-A7DD-C1AE8006794C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3672BD6-24F1-4C02-A7DD-C1AE8006794C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3672BD6-24F1-4C02-A7DD-C1AE8006794C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

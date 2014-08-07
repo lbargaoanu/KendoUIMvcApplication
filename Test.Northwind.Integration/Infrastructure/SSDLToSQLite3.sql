@@ -1,16 +1,12 @@
 
 -- --------------------------------------------------
--- Date Created: 07/16/2014 10:41:44
+-- Date Created: 08/07/2014 17:29:58
 -- compatible SQLite
 -- --------------------------------------------------
 -- Dropping existing tables
 -- --------------------------------------------------
     
 DROP TABLE IF EXISTS [Categories];
-    
-DROP TABLE IF EXISTS [CustomerDemographics];
-    
-DROP TABLE IF EXISTS [Customers];
     
 DROP TABLE IF EXISTS [Employees];
     
@@ -40,31 +36,6 @@ CREATE TABLE [Categories] (
     [CategoryName] TEXT,
     [Description] TEXT,
     [Picture] BLOB,
-    [RowVersion] BLOB NOT NULL
-);
-
--- Creating table 'CustomerDemographics'
-CREATE TABLE [CustomerDemographics] (
-    [CustomerDemographicID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    [CustomerTypeID] TEXT,
-    [CustomerDesc] TEXT,
-    [RowVersion] BLOB NOT NULL
-);
-
--- Creating table 'Customers'
-CREATE TABLE [Customers] (
-    [CustomerID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    [CompanyName] TEXT,
-    [ContactName] TEXT,
-    [ContactTitle] TEXT,
-    [Address] TEXT,
-    [City] TEXT,
-    [Region] TEXT,
-    [PostalCode] TEXT,
-    [Country] TEXT,
-    [Phone] TEXT,
-    [Fax] TEXT,
-    [Bool] INTEGER,
     [RowVersion] BLOB NOT NULL
 );
 
@@ -151,11 +122,6 @@ CREATE TABLE [Orders] (
     [RowVersion] BLOB NOT NULL,
     [Shipper_Id] INTEGER
 			
-		,CONSTRAINT [FK_Order_Customer]
-    		FOREIGN KEY ([CustomerID])
-    		REFERENCES [Customers] ([CustomerID])					
-    		ON DELETE CASCADE
-						
 		,CONSTRAINT [FK_Order_Employee]
     		FOREIGN KEY ([EmployeeID])
     		REFERENCES [Employees] ([EmployeeID])					

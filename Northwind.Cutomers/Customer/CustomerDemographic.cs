@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Northwind
+namespace Customers
 {
     using System;
     using System.Collections.Generic;

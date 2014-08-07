@@ -143,8 +143,6 @@
   </Choose>
   <ItemGroup>
     <Compile Include="CategoryControllerTests.cs" />
-    <Compile Include="CustomerControllerTests.cs" />
-    <Compile Include="CustomerDemographicControllerTests.cs" />
     <Compile Include="EmployeeControllerTests.cs" />
     <Compile Include="Infrastructure\NorthwindControllerTests.cs" />
     <Compile Include="OrderControllerTests.cs" />
@@ -181,6 +179,10 @@
     <ProjectReference Include="..\KendoUIMvcApplication\KendoUIMvcApplication.csproj">
       <Project>{fb94c812-4f8b-4493-be00-b9cc63962f28}</Project>
       <Name>KendoUIMvcApplication</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Northwind.Cutomers\Customers.csproj">
+      <Project>{a516b29c-4d42-4f2f-aeb0-40e366f10694}</Project>
+      <Name>Customers</Name>
     </ProjectReference>
     <ProjectReference Include="..\Northwind\Northwind.csproj">
       <Project>{9711d299-4e4d-4e78-80cf-5f65c787054c}</Project>
