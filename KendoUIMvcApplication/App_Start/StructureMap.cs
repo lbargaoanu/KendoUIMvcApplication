@@ -8,12 +8,17 @@ namespace KendoUIMvcApplication
 {
     public static class StructureMap
     {
+        public static void RegisterContext<TContext>(this IInitializationExpression init) where TContext : BaseContext, new()
+        {
+            init.For<TContext>().HttpContextScoped().Use<TContext>().SelectConstructor(() => new TContext());
+        }
+
         public static void Register()
         {
             ObjectFactory.Initialize(i => 
             {
-                i.For<ProductServiceContext>().HttpContextScoped().Use<ProductServiceContext>().SelectConstructor(()=>new ProductServiceContext());
-                i.For<CustomerContext>().HttpContextScoped().Use<CustomerContext>().SelectConstructor(() => new CustomerContext());
+                i.RegisterContext<ProductServiceContext>();
+                i.RegisterContext<CustomerContext>();
                 i.Scan(s =>
                 {
                     s.AssemblyContainingType<IMediator>();
