@@ -180,7 +180,7 @@
       <Project>{fb94c812-4f8b-4493-be00-b9cc63962f28}</Project>
       <Name>KendoUIMvcApplication</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Northwind.Cutomers\Customers.csproj">
+    <ProjectReference Include="..\Customers\Customers.csproj">
       <Project>{a516b29c-4d42-4f2f-aeb0-40e366f10694}</Project>
       <Name>Customers</Name>
     </ProjectReference>

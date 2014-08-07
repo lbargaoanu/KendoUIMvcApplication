@@ -248,7 +248,7 @@
       <Project>{2617f373-4523-45b3-9fbb-2665cd62a91b}</Project>
       <Name>Infrastructure.Web</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Northwind.Cutomers\Customers.csproj">
+    <ProjectReference Include="..\Customers\Customers.csproj">
       <Project>{a516b29c-4d42-4f2f-aeb0-40e366f10694}</Project>
       <Name>Customers</Name>
     </ProjectReference>

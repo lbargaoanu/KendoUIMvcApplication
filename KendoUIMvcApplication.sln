@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Northwind", "Northwind\Nort
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{1462CC57-42D7-476C-BDC4-715EFFD274BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Customers", "Northwind.Cutomers\Customers.csproj", "{A516B29C-4D42-4F2F-AEB0-40E366F10694}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Customers", "Customers\Customers.csproj", "{A516B29C-4D42-4F2F-AEB0-40E366F10694}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Customers.Integration", "Test.Customers.Integration\Test.Customers.Integration.csproj", "{C3672BD6-24F1-4C02-A7DD-C1AE8006794C}"
 EndProject
