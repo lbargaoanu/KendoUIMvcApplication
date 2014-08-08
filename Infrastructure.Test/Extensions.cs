@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Core.Metadata.Edm;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Web.Http;
 using System.Web.Http.Dependencies;
 using System.Web.Http.Results;
@@ -10,6 +11,8 @@ using FluentAssertions;
 using FluentAssertions.Equivalency;
 using Infrastructure.Web;
 using Kendo.Mvc.UI;
+using Moq;
+using Moq.Language.Flow;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.Kernel;
 using StructureMap;
@@ -25,6 +28,26 @@ namespace Infrastructure.Test
         private const int PageCount = 2;
         private static string[] IntegerTypes = new[] { "int", "bigint", "smallint", "tinyint", "bit" };
         private static string[] RealTypes = new[] { "double", "decimal", "float", "real" };
+
+        public static ISetupGetter<TMocked, TProperty> SetupGet<TMocked, TProperty>(this TMocked obj, Expression<Func<TMocked, TProperty>> expression) where TMocked : class
+        {
+            return Mock.Get(obj).SetupGet(expression);
+        }
+
+        public static ISetup<TMocked, TResult> Setup<TMocked, TResult>(this TMocked obj, Expression<Func<TMocked, TResult>> expression) where TMocked : class
+        {
+            return Mock.Get(obj).Setup(expression);
+        }
+
+        public static void Verify<TMocked>(this TMocked obj, Expression<Action<TMocked>> expression) where TMocked : class
+        {
+            obj.Verify(expression, Times.Once());
+        }
+
+        public static void Verify<TMocked>(this TMocked obj, Expression<Action<TMocked>> expression, Times times) where TMocked : class
+        {
+            Mock.Get(obj).Verify(expression, times);
+        }
 
         public static string GetType(EdmProperty property)
         {
@@ -101,9 +124,11 @@ namespace Infrastructure.Test
             handler.Context.SaveChanges();
         }
 
-        public static IHttpActionResult PutAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, TEntity entity) where TEntity : VersionedEntity where TContext : BaseContext
+        public static IHttpActionResult PutAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, TEntity entity, Dictionary<Type, object> injected = null)
+            where TEntity : VersionedEntity
+            where TContext : BaseContext
         {
-            return controller.Action(c => c.Put(entity.Id, entity));
+            return controller.Action(c => c.Put(entity.Id, entity), injected);
         }
 
         public static IHttpActionResult PutAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id, TEntity entity) where TEntity : VersionedEntity where TContext : BaseContext
@@ -131,11 +156,11 @@ namespace Infrastructure.Test
             return controller.Action(c => c.Get(id));
         }
 
-        public static TResult Action<TContext, TEntity, TResult>(this CrudController<TContext, TEntity> controller, Func<CrudController<TContext, TEntity>, TResult> action)
+        public static TResult Action<TContext, TEntity, TResult>(this CrudController<TContext, TEntity> controller, Func<CrudController<TContext, TEntity>, TResult> action, Dictionary<Type, object> injected = null)
             where TEntity : VersionedEntity
             where TContext : BaseContext
         {
-            using(var scope = new AutofixtureDependencyScope<TContext>())
+            using(var scope = new AutofixtureDependencyScope<TContext>(injected))
             {
                 if(controller.Context == null)
                 {
@@ -274,15 +299,22 @@ namespace Infrastructure.Test
     {
         private List<IDisposable> disposables = new List<IDisposable>();
         private readonly IFixture fixture;
+        private readonly Dictionary<Type, object> injected;
 
-        public AutofixtureDependencyScope()
+        public AutofixtureDependencyScope(Dictionary<Type, object> injected)
         {
+            this.injected = injected;
             fixture = ContextAutoDataAttribute.CreateFixture(typeof(TContext));
             fixture.Freeze<TContext>();
         }
 
         public object GetService(Type serviceType)
         {
+            object injectedValue;
+            if(injected != null && injected.TryGetValue(serviceType, out injectedValue))
+            {
+                return injectedValue;
+            }
             var realType = ObjectFactory.Container.Model.DefaultTypeFor(serviceType);
             var service = fixture.Create(realType);
             var disposable = service as IDisposable;

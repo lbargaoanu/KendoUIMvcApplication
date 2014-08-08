@@ -178,8 +178,10 @@ namespace Infrastructure.Web
                 return;
             }
             var dependencyScope = (StructureMapDependencyScope) actionExecutedContext.Request.GetDependencyScope();
-            var context = dependencyScope.Container.Model.GetAllPossible<DbContext>().Single();
-            context.SaveChanges();
+            foreach(var context in dependencyScope.Container.Model.GetAllPossible<DbContext>())
+            {
+                context.SaveChanges();
+            }
         }
     }
 }

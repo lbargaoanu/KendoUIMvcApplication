@@ -4,6 +4,18 @@ using Infrastructure.Web;
 
 namespace Customers
 {
+    public abstract class CustomersQueryHandler<TQuery, TResponse> : QueryHandler<CustomerContext, TQuery, TResponse> where TQuery : IQuery<TResponse>
+    {
+    }
+
+    public abstract class CustomersCommandHandler<TCommand, TResult> : CommandHandler<CustomerContext, TCommand, TResult> where TCommand : ICommand<TResult>
+    {
+    }
+
+    public abstract class CustomersCommandHandler<TCommand> : CommandHandler<CustomerContext, TCommand> where TCommand : ICommand
+    {
+    }
+
     public class CustomerContext : BaseContext
     {
         public CustomerContext(DbConnection connection) : base(connection)

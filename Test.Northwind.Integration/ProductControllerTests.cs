@@ -1,19 +1,54 @@
 ﻿using System;
-using System.Linq;
-using AutoMapper;
-using FluentAssertions;
+using Moq;
+using System.Collections.Generic;
+using Common;
 using Infrastructure.Test;
-using KendoUIMvcApplication;
-using Northwind.Controllers;
+using Infrastructure.Web;
 using Northwind;
-using Xunit;
+using Northwind.Controllers;
 using Xunit.Extensions;
 
 namespace Test.Northwind.Integration
 {
+    using NotifyHandler = ICommandHandler<NotifyCustomer, NoResult>;
+
     public class ProductControllerTests : NorthwindControllerTests<ProductController, Product>
     {
         public static void Customize(Product entity)
+        {
+        }
+
+        public override void ShouldModify(Product newEntity, Product modified, ProductServiceContext createContext, ProductServiceContext readContext)
+        {
+        }
+
+        [Theory, ContextAutoData]
+        public void ShouldModifyAndNotify(Product newEntity, Product modified, ProductServiceContext createContext, ProductServiceContext readContext, NotifyHandler handler)
+        {
+            base.ShouldModifyCore(newEntity, modified, createContext, readContext, GetNotifyHandler(handler));
+
+            VerifyNotify(modified, handler);
+        }
+
+        private static void VerifyNotify(Product modified, NotifyHandler handler)
+        {
+            handler.Verify(h => h.Execute(It.Is<NotifyCustomer>(n => n.ProductId == modified.Id)));
+        }
+
+        private static Dictionary<Type, object> GetNotifyHandler(NotifyHandler handler)
+        {
+            return new Dictionary<Type, object> { { typeof(NotifyHandler), handler } };
+        }
+
+        [Theory, ContextAutoData]
+        public void ShouldNotModifyConcurrentAndNotify(Product entity, ProductServiceContext createContext, ProductServiceContext modifyContext, byte[] rowVersion, NotifyHandler handler)
+        {
+            base.ShouldNotModifyConcurrentCore(entity, createContext, modifyContext, rowVersion, GetNotifyHandler(handler));
+
+            VerifyNotify(entity, handler);
+        }
+
+        public override void ShouldNotModifyConcurrent(Product entity, ProductServiceContext createContext, ProductServiceContext modifyContext, byte[] rowVersion)
         {
         }
 

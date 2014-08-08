@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -79,6 +80,11 @@ namespace Infrastructure.Test
         [Theory, ContextAutoData]
         public virtual void ShouldModify(TEntity newEntity, TEntity modified, TContext createContext, TContext readContext)
         {
+            ShouldModifyCore(newEntity, modified, createContext, readContext, null);
+        }
+
+        public virtual void ShouldModifyCore(TEntity newEntity, TEntity modified, TContext createContext, TContext readContext, Dictionary<Type, object> injected)
+        {
             // arrange
             createContext.AddAndSave(newEntity);
             modified.Id = newEntity.Id;
@@ -88,7 +94,7 @@ namespace Infrastructure.Test
 
             var controller = new TController();
             // act
-            var response = controller.PutAndSave(newEntity);
+            var response = controller.PutAndSave(newEntity, injected);
             // assert
             response.AssertIsOk(newEntity);
             var entities = readContext.Set<TEntity>();
@@ -124,12 +130,17 @@ namespace Infrastructure.Test
         [Theory, ContextAutoData]
         public virtual void ShouldNotModifyConcurrent(TEntity entity, TContext createContext, TContext modifyContext, byte[] rowVersion)
         {
+            ShouldNotModifyConcurrentCore(entity, createContext, modifyContext, rowVersion, null);
+        }
+
+        public virtual void ShouldNotModifyConcurrentCore(TEntity entity, TContext createContext, TContext modifyContext, byte[] rowVersion, Dictionary<Type, object> injected)
+        {
             // arrange
             createContext.AddAndSave(entity);
             modifyContext.Set<TEntity>().Find(entity.Id).RowVersion = rowVersion;
             modifyContext.SaveChanges();
             // act & assert
-            Assert.Throws<DbUpdateConcurrencyException>(()=>new TController().PutAndSave(entity));
+            Assert.Throws<DbUpdateConcurrencyException>(() => new TController().PutAndSave(entity, injected));
         }
     }
 }

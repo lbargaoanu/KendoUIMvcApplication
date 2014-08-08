@@ -5,6 +5,7 @@ using System.Web.Http;
 using Kendo.Mvc.UI;
 using WebApi.OutputCache.V2;
 using System.Web.Http.ModelBinding;
+using Common;
 
 namespace Northwind.Controllers
 {
@@ -30,6 +31,7 @@ namespace Northwind.Controllers
         protected override void Modify(Product entity)
         {
             Send(new ModifyProduct { Product = entity });
+            Send(new NotifyCustomer { ProductId = entity.Id });
         }
     }
 }

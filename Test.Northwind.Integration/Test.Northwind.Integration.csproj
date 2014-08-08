@@ -168,6 +168,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj">
+      <Project>{1462cc57-42d7-476c-bdc4-715effd274bd}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Infrastructure.Test\Infrastructure.Test.csproj">
       <Project>{b4104094-bd3c-492a-9202-606ac31e81a8}</Project>
       <Name>Infrastructure.Test</Name>
