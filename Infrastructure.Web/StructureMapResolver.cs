@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using System.Web.Http.Dependencies;
 using StructureMap;
+using StructureMap.Web.Pipeline;
 
 namespace Infrastructure.Web
 {
@@ -29,6 +31,7 @@ namespace Infrastructure.Web
         public StructureMapDependencyScope(IContainer container)
         {
             this.Container = container;
+            HttpContext.Current.Items.Add(HttpContextLifecycle.ITEM_NAME, new ContextLifecyleObjectCache());
         }
 
         public object GetService(Type serviceType)

@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
@@ -12,6 +11,8 @@ using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
 using AutoMapper;
 using Newtonsoft.Json;
+using StructureMap.Pipeline;
+using StructureMap.Web;
 
 namespace Infrastructure.Web
 {
@@ -167,6 +168,30 @@ namespace Infrastructure.Web
         }
     }
 
+    public class ContextLifecyleObjectCache : LifecycleObjectCache
+    {
+        private List<DbContext> contexts = new List<DbContext>();
+
+        public void SaveChanges()
+        {
+            foreach(var dbContext in contexts)
+            {
+                dbContext.SaveChanges();
+            }
+        }
+
+        protected override object buildWithSession(Type pluginType, Instance instance, StructureMap.IBuildSession session)
+        {
+            var obj = base.buildWithSession(pluginType, instance, session);
+            var context = obj as DbContext;
+            if(context != null)
+            {
+                contexts.Add(context);
+            }
+            return obj;
+        }
+    }
+
     public class SaveChangesFilter : ActionFilterAttribute
     {
         public override void OnActionExecuted(HttpActionExecutedContext actionExecutedContext)
@@ -177,11 +202,8 @@ namespace Infrastructure.Web
             {
                 return;
             }
-            var dependencyScope = (StructureMapDependencyScope) actionExecutedContext.Request.GetDependencyScope();
-            foreach(var context in dependencyScope.Container.Model.GetAllPossible<DbContext>())
-            {
-                context.SaveChanges();
-            }
+            var contexts = (ContextLifecyleObjectCache) WebLifecycles.HttpContext.FindCache(null);
+            contexts.SaveChanges();
         }
     }
 }
