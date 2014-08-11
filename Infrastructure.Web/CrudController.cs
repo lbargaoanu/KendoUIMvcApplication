@@ -12,15 +12,21 @@ using StructureMap.Attributes;
 
 namespace Infrastructure.Web
 {
-    public class ContextController<TContext, TViewModel> : ApiController where TContext : BaseContext where TViewModel : IEntity
+    public abstract class ContextController<TContext, TViewModel> : ApiController where TContext : BaseContext where TViewModel : IEntity
     {
-        protected virtual IQueryable<TViewModel> GetAllEntities() { return Enumerable.Empty<TViewModel>().AsQueryable(); }
-        protected virtual TViewModel GetById(int id) { return default(TViewModel); }
-        protected virtual void Add(TViewModel entity) { }
-        protected virtual void Delete(TViewModel entity) { }
-        protected virtual void Modify(TViewModel entity) { }
-        
-        protected virtual void OnModifyError(TViewModel entity) { }
+        protected abstract IQueryable<TViewModel> GetAllEntities();
+        protected abstract void Add(TViewModel entity);
+        protected abstract void Delete(TViewModel entity);
+        protected abstract void Modify(TViewModel entity);
+
+        protected virtual TViewModel GetById(int id)
+        {
+            return GetAllEntities().SingleOrDefault(e => e.Id == id);
+        }
+
+        protected virtual void OnModifyError(TViewModel entity)
+        {
+        }
 
         [SetterProperty]
         public IMediator Mediator { get; set; }
@@ -43,7 +49,7 @@ namespace Infrastructure.Web
             return GetAllEntities().ToDataSourceResult(request);
         }
 
-        public virtual TViewModel Find(int id)
+        protected virtual TViewModel Find(int id)
         {
             return GetById(id);
         }
@@ -142,8 +148,7 @@ namespace Infrastructure.Web
 
         protected override TEntity GetById(int id)
         {
-            var entities = Context.Set<TEntity>();
-            return Include(entities).SingleOrDefault(e => e.Id == id);
+            return GetAllEntities(e => e.Id == id).SingleOrDefault();
         }
 
         protected override void OnModifyError(TEntity entity)
@@ -166,7 +171,7 @@ namespace Infrastructure.Web
             Context.Set<TEntity>().Remove(entity);
         }
 
-        public override TEntity Find(int id)
+        protected override TEntity Find(int id)
         {
             return Context.Set<TEntity>().SingleOrDefault(e => e.Id == id);
         }
