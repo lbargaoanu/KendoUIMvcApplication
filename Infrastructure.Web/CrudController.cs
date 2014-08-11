@@ -12,38 +12,30 @@ using StructureMap.Attributes;
 
 namespace Infrastructure.Web
 {
-    public class ContextController<TContext> : ApiController where TContext : BaseContext
+    public class ContextController<TContext, TViewModel> : ApiController where TContext : BaseContext where TViewModel : IEntity
     {
+        protected virtual IQueryable<TViewModel> GetAllEntities() { return Enumerable.Empty<TViewModel>().AsQueryable(); }
+        protected virtual TViewModel GetById(int id) { return default(TViewModel); }
+        protected virtual void Add(TViewModel entity) { }
+        protected virtual void Delete(TViewModel entity) { }
+        protected virtual void Modify(TViewModel entity) { }
+        
+        protected virtual void OnModifyError(TViewModel entity) { }
+
         [SetterProperty]
         public IMediator Mediator { get; set; }
 
         [SetterProperty]
         public TContext Context { get; set; }
 
-        [NonAction]
-        public TResponse Get<TResponse>(IQuery<TResponse> query)
+        protected TResponse Get<TResponse>(IQuery<TResponse> query)
         {
             return Mediator.Get(query);
         }
 
-        [NonAction]
-        public TResult Send<TResult>(ICommand<TResult> command)
+        protected TResult Send<TResult>(ICommand<TResult> command)
         {
             return Mediator.Send(command);
-        }
-    }
-
-    public class CrudController<TContext, TEntity> : ContextController<TContext> where TEntity : VersionedEntity where TContext : BaseContext
-    {
-        protected void SetRowVersion(TEntity source, TEntity destination)
-        {
-            destination.SetRowVersion(source, Context);
-        }
-
-        [NonAction]
-        public virtual IQueryable<TEntity> Include(IQueryable<TEntity> entities)
-        {
-            return entities;
         }
 
         public virtual DataSourceResult GetAll(DataSourceRequest request)
@@ -51,24 +43,12 @@ namespace Infrastructure.Web
             return GetAllEntities().ToDataSourceResult(request);
         }
 
-        [NonAction]
-        public virtual IQueryable<TEntity> GetAllEntities()
+        public virtual TViewModel Find(int id)
         {
-            return GetAllEntities(null);
+            return GetById(id);
         }
 
-        [NonAction]
-        public virtual IQueryable<TEntity> GetAllEntities(Expression<Func<TEntity, bool>> where)
-        {
-            IQueryable<TEntity> entities = Context.Set<TEntity>();
-            if(where != null)
-            {
-                entities = entities.Where(where);
-            }
-            return Include(entities).AsNoTracking();
-        }
-
-        public IHttpActionResult Get(int id)
+        public virtual IHttpActionResult Get(int id)
         {
             var entity = GetById(id);
             if(entity == null)
@@ -78,13 +58,25 @@ namespace Infrastructure.Web
             return Ok(entity);
         }
 
-        protected virtual TEntity GetById(int id)
+        public virtual IHttpActionResult Post(TViewModel entity)
         {
-            var entities = Context.Set<TEntity>();
-            return Include(entities).SingleOrDefault(e => e.Id == id);
+            Add(entity);
+            Context.SaveChanges();
+            return Created(entity);
         }
 
-        public IHttpActionResult Put(int id, TEntity entity)
+        public virtual IHttpActionResult Delete(int id)
+        {
+            var entity = Find(id);
+            if(entity == null)
+            {
+                return NotFound();
+            }
+            Delete(entity);
+            return Ok();
+        }
+
+        public virtual IHttpActionResult Put(int id, TViewModel entity)
         {
             if(id != entity.Id)
             {
@@ -97,76 +89,97 @@ namespace Infrastructure.Web
             }
             catch(Exception)
             {
-                Context.Entry(entity).State = EntityState.Detached;
-                if(!Exists(id))
+                OnModifyError(entity);
+                if(Find(entity.Id) != null)
                 {
-                    return NotFound();
+                    throw;
                 }
                 else
                 {
-                    throw;
+                    return NotFound();
                 }
             }
             return Ok(entity);
         }
 
-        protected internal OkNegotiatedContentResult<Wrapper> Ok(TEntity entity)
+        protected internal OkNegotiatedContentResult<Wrapper> Ok(TViewModel entity)
         {
             return Ok(new Wrapper(entity));
         }
 
-        protected virtual void Modify(TEntity entity)
+        protected internal CreatedAtRouteNegotiatedContentResult<Wrapper> Created(TViewModel entity)
+        {
+            return CreatedAtRoute("DefaultApi", new { id = entity.Id }, new Wrapper(entity));
+        }
+    }
+
+    public class CrudController<TContext, TEntity> : ContextController<TContext, TEntity> where TEntity : VersionedEntity where TContext : BaseContext
+    {
+        protected void SetRowVersion(TEntity source, TEntity destination)
+        {
+            destination.SetRowVersion(source, Context);
+        }
+
+        protected internal virtual IQueryable<TEntity> Include(IQueryable<TEntity> entities)
+        {
+            return entities;
+        }
+
+        protected override IQueryable<TEntity> GetAllEntities()
+        {
+            return GetAllEntities(null);
+        }
+
+        protected virtual IQueryable<TEntity> GetAllEntities(Expression<Func<TEntity, bool>> where)
+        {
+            IQueryable<TEntity> entities = Context.Set<TEntity>();
+            if(where != null)
+            {
+                entities = entities.Where(where);
+            }
+            return Include(entities).AsNoTracking();
+        }
+
+        protected override TEntity GetById(int id)
+        {
+            var entities = Context.Set<TEntity>();
+            return Include(entities).SingleOrDefault(e => e.Id == id);
+        }
+
+        protected override void OnModifyError(TEntity entity)
+        {
+            Context.Entry(entity).State = EntityState.Detached;
+        }
+
+        protected override void Modify(TEntity entity)
         {
             Context.Entry(entity).State = System.Data.Entity.EntityState.Modified;
         }
 
-        public IHttpActionResult Post(TEntity entity)
-        {
-            Add(entity);
-            Context.SaveChanges();
-            return Created(entity);
-        }
-
-        protected internal CreatedAtRouteNegotiatedContentResult<Wrapper> Created(TEntity entity)
-        {
-            return CreatedAtRoute("DefaultApi", new { id = entity.Id }, new Wrapper(entity));
-        }
-
-        protected virtual void Add(TEntity entity)
+        protected override void Add(TEntity entity)
         {
             Context.Set<TEntity>().Add(entity);
         }
 
-        public IHttpActionResult Delete(int id)
-        {
-            var entity = Context.Set<TEntity>().Find(id);
-            if(entity == null)
-            {
-                return NotFound();
-            }
-            Delete(entity);
-            return Ok();
-        }
-
-        protected virtual void Delete(TEntity entity)
+        protected override void Delete(TEntity entity)
         {
             Context.Set<TEntity>().Remove(entity);
         }
 
-        private bool Exists(int id)
+        public override TEntity Find(int id)
         {
-            return Context.Set<TEntity>().Count(e => e.Id == id) > 0;
+            return Context.Set<TEntity>().SingleOrDefault(e => e.Id == id);
         }
     }
 
     public class Wrapper
     {
-        public Wrapper(params Entity[] entities)
+        public Wrapper(params IEntity[] entities)
         {
             Data = entities;
             Total = entities.Length;
         }
-        public Entity[] Data { get; set; }
+        public IEntity[] Data { get; set; }
         public int Total { get; set; }
     }
 
@@ -176,7 +189,12 @@ namespace Infrastructure.Web
         public byte[] RowVersion { get; set; }
     }
 
-    public abstract class Entity
+    public interface IEntity
+    {
+        int Id { get; set; }
+    }
+
+    public abstract class Entity : IEntity
     {
         [Key]
         public int Id { get; set; }

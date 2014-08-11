@@ -228,7 +228,7 @@ namespace Infrastructure.Test
 
         public static void ShouldContain<TEntity>(this Wrapper wrapper, TEntity entity) where TEntity : VersionedEntity
         {
-            wrapper.Data[0].ShouldBeEquivalentTo(entity);
+            ((Entity)wrapper.Data[0]).ShouldBeEquivalentTo(entity);
         }
 
         public static void ShouldAllBeEquivalentTo<TEntity>(this IEnumerable<TEntity> subject, IEnumerable<TEntity> expectation, string reason = "", params object[] reasonArgs) where TEntity : Entity
