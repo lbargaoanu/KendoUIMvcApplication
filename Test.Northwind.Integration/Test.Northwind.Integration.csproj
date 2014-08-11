@@ -145,6 +145,7 @@
     <Compile Include="CategoryControllerTests.cs" />
     <Compile Include="EmployeeControllerTests.cs" />
     <Compile Include="Infrastructure\NorthwindControllerTests.cs" />
+    <Compile Include="Infrastructure\Tests.cs" />
     <Compile Include="OrderControllerTests.cs" />
     <Compile Include="ProductControllerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

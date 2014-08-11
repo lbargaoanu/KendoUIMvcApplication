@@ -132,6 +132,14 @@ namespace Infrastructure.Web
             }
             throw new ArgumentException("'" + lambda.Body + "' is not a method access.");
         }
+
+        public static void Assert(this JsonReader reader, JsonToken token)
+        {
+            if(reader.TokenType != token)
+            {
+                throw new InvalidOperationException("Expected "+token);
+            }
+        }
     }
 
     public class ValidateModelAttribute : ActionFilterAttribute
@@ -154,7 +162,15 @@ namespace Infrastructure.Web
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            return reader.ReadAsBytes();
+            reader.Assert(JsonToken.StartArray);
+            var items = new List<byte>();
+            int? item;
+            while((item = reader.ReadAsInt32()) != null)
+            {                
+                items.Add(checked((byte) item.Value));
+            }
+            reader.Assert(JsonToken.EndArray);
+            return items.ToArray();
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
