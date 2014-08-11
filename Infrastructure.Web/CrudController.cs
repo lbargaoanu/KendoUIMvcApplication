@@ -5,7 +5,6 @@ using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Web.Http;
-using System.Web.Http.ModelBinding;
 using System.Web.Http.Results;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -13,7 +12,7 @@ using StructureMap.Attributes;
 
 namespace Infrastructure.Web
 {
-    public class CrudController<TContext, TEntity> : ApiController where TEntity : VersionedEntity where TContext : BaseContext
+    public class ContextController<TContext> : ApiController where TContext : BaseContext
     {
         [SetterProperty]
         public IMediator Mediator { get; set; }
@@ -21,6 +20,21 @@ namespace Infrastructure.Web
         [SetterProperty]
         public TContext Context { get; set; }
 
+        [NonAction]
+        public TResponse Get<TResponse>(IQuery<TResponse> query)
+        {
+            return Mediator.Get(query);
+        }
+
+        [NonAction]
+        public TResult Send<TResult>(ICommand<TResult> command)
+        {
+            return Mediator.Send(command);
+        }
+    }
+
+    public class CrudController<TContext, TEntity> : ContextController<TContext> where TEntity : VersionedEntity where TContext : BaseContext
+    {
         protected void SetRowVersion(TEntity source, TEntity destination)
         {
             destination.SetRowVersion(source, Context);
@@ -142,18 +156,6 @@ namespace Infrastructure.Web
         private bool Exists(int id)
         {
             return Context.Set<TEntity>().Count(e => e.Id == id) > 0;
-        }
-
-        [NonAction]
-        public TResponse Get<TResponse>(IQuery<TResponse> query)
-        {
-            return Mediator.Get(query);
-        }
-
-        [NonAction]
-        public TResult Send<TResult>(ICommand<TResult> command)
-        {
-            return Mediator.Send(command);
         }
     }
 
