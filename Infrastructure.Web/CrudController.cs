@@ -90,13 +90,13 @@ namespace Infrastructure.Web
             catch(Exception)
             {
                 OnModifyError(entity);
-                if(Find(entity.Id) != null)
+                if(Find(entity.Id) == null)
                 {
-                    throw;
+                    return NotFound();
                 }
                 else
                 {
-                    return NotFound();
+                    throw;
                 }
             }
             return Ok(entity);
