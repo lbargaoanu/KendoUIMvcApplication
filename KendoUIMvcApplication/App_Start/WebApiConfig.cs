@@ -16,7 +16,9 @@ namespace KendoUIMvcApplication
             ObjectFactory.Configure(c => c.For<IDependencyResolver>().Use(config.DependencyResolver));
 
             config.BindParameter(typeof(DataSourceRequest), new Infrastructure.Web.DataSourceRequestModelBinder());
-            config.Formatters.JsonFormatter.SerializerSettings.Converters.Add(new JQueryArrayConverter());
+            var formatters = config.Formatters;
+            formatters.Remove(formatters.XmlFormatter);
+            formatters.JsonFormatter.SerializerSettings.Converters.Add(new JQueryArrayConverter());
             config.Filters.Add(new SaveChangesFilter());
             config.Filters.Add(new ValidateModelAttribute());
             //config.Formatters.JsonFormatter.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Serialize;
