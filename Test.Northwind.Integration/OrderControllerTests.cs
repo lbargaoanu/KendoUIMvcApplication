@@ -82,7 +82,7 @@ namespace Test.Northwind.Integration
             createContext.OrderDetails.Count().Should().Be(detailsCount, "nothing should be inserted in FK tables");
             var found = readContext.Orders.GetWithInclude(newEntity.Id, o => o.OrderDetails);
             found.OrderDetails.ShouldHaveTheSameIdsAs(modifiedDetails); 
-            found.OrderDetails.ShouldAllBeQuasiEquivalentTo(modifiedDetails);
+            found.OrderDetails.ShouldAllBeEquivalentTo(modifiedDetails);
         }
     }
 }
