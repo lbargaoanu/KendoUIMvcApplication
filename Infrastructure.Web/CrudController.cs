@@ -68,7 +68,8 @@ namespace Infrastructure.Web
         {
             Add(entity);
             Context.SaveChanges();
-            return Created(entity);
+            var result = GetById(entity.Id);
+            return Created(result);
         }
 
         public virtual IHttpActionResult Delete(int id)
@@ -105,7 +106,8 @@ namespace Infrastructure.Web
                     throw;
                 }
             }
-            return Ok(entity);
+            var result = GetById(entity.Id);
+            return Ok(result);
         }
 
         protected internal OkNegotiatedContentResult<Wrapper> Ok(TViewModel entity)
