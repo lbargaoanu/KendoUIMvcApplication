@@ -80,10 +80,10 @@ namespace Infrastructure.Test
         [Theory, ContextAutoData]
         public virtual void ShouldModify(TEntity newEntity, TEntity modified, TContext createContext, TContext readContext)
         {
-            ShouldModifyCore(newEntity, modified, createContext, readContext, null);
+            ShouldModifyCore(newEntity, modified, createContext, readContext);
         }
 
-        public virtual void ShouldModifyCore(TEntity newEntity, TEntity modified, TContext createContext, TContext readContext, Dictionary<Type, object> injected)
+        public virtual void ShouldModifyCore(TEntity newEntity, TEntity modified, TContext createContext, TContext readContext, Dictionary<Type, object> injected = null)
         {
             // arrange
             createContext.AddAndSave(newEntity);
@@ -128,16 +128,17 @@ namespace Infrastructure.Test
         }
 
         [Theory, ContextAutoData]
-        public virtual void ShouldNotModifyConcurrent(TEntity entity, TContext createContext, TContext modifyContext, byte[] rowVersion)
+        public virtual void ShouldNotModifyConcurrent(TEntity entity, TContext createContext, TContext modifyContext)
         {
-            ShouldNotModifyConcurrentCore(entity, createContext, modifyContext, rowVersion, null);
+            ShouldNotModifyConcurrentCore(entity, createContext, modifyContext);
         }
 
-        public virtual void ShouldNotModifyConcurrentCore(TEntity entity, TContext createContext, TContext modifyContext, byte[] rowVersion, Dictionary<Type, object> injected)
+        public virtual void ShouldNotModifyConcurrentCore(TEntity entity, TContext createContext, TContext modifyContext, Dictionary<Type, object> injected = null)
         {
             // arrange
             createContext.AddAndSave(entity);
-            modifyContext.Set<TEntity>().Find(entity.Id).RowVersion = rowVersion;
+            var newEntity = modifyContext.Set<TEntity>().Find(entity.Id);
+            modifyContext.Entry(newEntity).State = EntityState.Modified;
             modifyContext.SaveChanges();
             // act & assert
             Assert.Throws<DbUpdateConcurrencyException>(() => new TController().PutAndSave(entity, injected));

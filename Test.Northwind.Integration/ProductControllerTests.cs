@@ -41,14 +41,14 @@ namespace Test.Northwind.Integration
         }
 
         [Theory, ContextAutoData]
-        public void ShouldNotModifyConcurrentAndNotify(Product entity, ProductServiceContext createContext, ProductServiceContext modifyContext, byte[] rowVersion, NotifyHandler handler)
+        public void ShouldNotModifyConcurrentAndNotify(Product entity, ProductServiceContext createContext, ProductServiceContext modifyContext, NotifyHandler handler)
         {
-            base.ShouldNotModifyConcurrentCore(entity, createContext, modifyContext, rowVersion, GetNotifyHandler(handler));
+            base.ShouldNotModifyConcurrentCore(entity, createContext, modifyContext, GetNotifyHandler(handler));
 
             VerifyNotify(entity, handler);
         }
 
-        public override void ShouldNotModifyConcurrent(Product entity, ProductServiceContext createContext, ProductServiceContext modifyContext, byte[] rowVersion)
+        public override void ShouldNotModifyConcurrent(Product entity, ProductServiceContext createContext, ProductServiceContext modifyContext)
         {
         }
 
