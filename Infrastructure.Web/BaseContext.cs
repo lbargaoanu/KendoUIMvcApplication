@@ -63,26 +63,33 @@ namespace Infrastructure.Web
             int result;
             var savingHandler = SavingChanges;
             SaveChangesEventArgs args = null;
-            try
+            if(!executingEvent && savingHandler != null)
             {
-                if(!executingEvent && savingHandler != null)
+                executingEvent = true;
+                try
                 {
-                    executingEvent = true;
-                    savingHandler(this, args = new SaveChangesEventArgs { Context = this });
+                        savingHandler(this, args = new SaveChangesEventArgs { Context = this });
                 }
-
-                result = base.SaveChanges();
-
-                var savedHandler = SavedChanges;
-                if(!executingEvent && savedHandler != null)
+                finally
                 {
-                    executingEvent = true;
-                    savedHandler(this, args ?? new SaveChangesEventArgs { Context = this });
+                    executingEvent = false;
                 }
             }
-            finally
+
+            result = base.SaveChanges();
+
+            var savedHandler = SavedChanges;
+            if(!executingEvent && savedHandler != null)
             {
-                executingEvent = false;
+                executingEvent = true;
+                try
+                {
+                    savedHandler(this, args ?? new SaveChangesEventArgs { Context = this });
+                }
+                finally
+                {
+                    executingEvent = false;
+                }
             }
             return result;
         }

@@ -99,7 +99,7 @@ namespace Infrastructure.Test
             response.AssertIsOk(newEntity);
             var entities = readContext.Set<TEntity>();
             newEntity = controller.Include(entities).Single(p => p.Id == newEntity.Id);
-            newEntity.ShouldBeEquivalentTo(modified);
+            newEntity.ShouldBeQuasiEquivalentTo(modified);
         }
 
         protected virtual void Map(TEntity source, TEntity destination)
