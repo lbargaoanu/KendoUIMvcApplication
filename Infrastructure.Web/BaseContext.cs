@@ -73,7 +73,7 @@ namespace Infrastructure.Web
 
         private void ExecuteHandler(EventHandler<SaveChangesEventArgs> handler, ref SaveChangesEventArgs args)
         {
-            if(executingEvent || handler == null)
+            if(handler == null || executingEvent)
             {
                 return;
             }
