@@ -112,6 +112,8 @@
     <Compile Include="BaseContext.cs" />
     <Compile Include="CrudController.cs" />
     <Compile Include="DataSourceRequestModelBinder.cs" />
+    <Compile Include="GridProfile\GridProfileDataSourceRequest.cs" />
+    <Compile Include="GridProfile\GridProfileDataSourceResult.cs" />
     <Compile Include="Mediator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StructureMapResolver.cs" />

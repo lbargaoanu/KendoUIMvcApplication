@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Web.Http;
 using System.Web.Http.Results;
+using Infrastructure.Web.GridProfile;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using StructureMap.Attributes;
