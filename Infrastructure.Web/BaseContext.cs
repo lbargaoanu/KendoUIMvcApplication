@@ -60,38 +60,32 @@ namespace Infrastructure.Web
 
         public override int SaveChanges()
         {
-            int result;
-            var savingHandler = SavingChanges;
             SaveChangesEventArgs args = null;
-            if(!executingEvent && savingHandler != null)
-            {
-                executingEvent = true;
-                try
-                {
-                        savingHandler(this, args = new SaveChangesEventArgs { Context = this });
-                }
-                finally
-                {
-                    executingEvent = false;
-                }
-            }
 
-            result = base.SaveChanges();
+            ExecuteHandler(SavingChanges, ref args);
 
-            var savedHandler = SavedChanges;
-            if(!executingEvent && savedHandler != null)
-            {
-                executingEvent = true;
-                try
-                {
-                    savedHandler(this, args ?? new SaveChangesEventArgs { Context = this });
-                }
-                finally
-                {
-                    executingEvent = false;
-                }
-            }
+            var result = base.SaveChanges();
+
+            ExecuteHandler(SavedChanges, ref args);
+
             return result;
+        }
+
+        private void ExecuteHandler(EventHandler<SaveChangesEventArgs> handler, ref SaveChangesEventArgs args)
+        {
+            if(executingEvent || handler == null)
+            {
+                return;
+            }
+            try
+            {
+                executingEvent = true;
+                handler(this, args ?? (args = new SaveChangesEventArgs { Context = this }));
+            }
+            finally
+            {
+                executingEvent = false;
+            }
         }
     }
 }
