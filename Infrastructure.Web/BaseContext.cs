@@ -10,7 +10,7 @@ namespace Infrastructure.Web
         public DbModelBuilder ModelBuilder { get; set; }
     }
 
-    public class SaveChangesEventArgs
+    public class SaveChangesEventArgs : EventArgs
     {
         public object State { get; set; }
         public BaseContext Context { get; set; }
