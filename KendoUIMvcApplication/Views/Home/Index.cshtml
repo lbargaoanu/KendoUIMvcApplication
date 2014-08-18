@@ -2,149 +2,56 @@
     ViewBag.Title = "Home Page";
 }
 <h2>@ViewBag.Message</h2>
-<div>
+
 @(Html.Kendo().Grid<Northwind.Product>()
-          .Name("Grid")
-          .Columns(columns =>
+      .Name("Grid")
+      .Columns(columns =>
+      {
+          columns.Bound(p => p.Id).Width(100);
+          columns.Bound(p => p.ProductName);
+          columns.Bound(p => p.UnitPrice);
+          columns.Bound(p => p.UnitsInStock);
+          columns.Command(c =>
           {
-              columns.Bound(p => p.Id).Width(100);
-              columns.Bound(p => p.ProductName);
-              columns.Bound(p => p.UnitPrice);
-              columns.Bound(p => p.UnitsInStock);
-              columns.Command(c =>
-              {
-                  c.Edit();
-                  c.Destroy();
-              });
-          })
-          .ToolBar(tools =>
-          {
-              tools.Create();
-          })
-          .Editable(editable => editable.Mode(GridEditMode.PopUp))
-          .Sortable()
-          .Pageable()
-          .Filterable()
-          .DataSource(dataSource => dataSource
-            .Ajax()
-                .Model(model =>
-                {
-                    model.Id(p => p.Id);
-                })
-                .Read(read => read.Url("/api/Product").Type(HttpVerbs.Get))
-                .Create(create => create.Url("api/Product").Type(HttpVerbs.Post))
-                .Update(update => update.Url("api/Product").Type(HttpVerbs.Put))
-                .Destroy(destroy => destroy.Url("api/Product").Type(HttpVerbs.Delete)
-                )
-          )
+              c.Edit();
+              c.Destroy();
+          });
+      })
+      .ToolBar(tools =>
+      {
+          tools.Create();
+      })
+      .Editable(editable => editable.Mode(GridEditMode.PopUp))
+      .Sortable()
+      .Pageable()
+      .Filterable()
+      .DataSource(dataSource => dataSource
+        .Ajax()
+            .Model(model =>
+            {
+                model.Id(p => p.Id);
+            })
+            .Read(read => read.Url("api/Product").Type(HttpVerbs.Get))
+            .Create(create => create.Url("api/Product").Type(HttpVerbs.Post))
+            .Update(update => update.Url("api/Product").Type(HttpVerbs.Put))
+            .Destroy(destroy => destroy.Url("api/Product").Type(HttpVerbs.Delete))
+      )
+)
 
-    )
+<script>
 
-    <script>
+    $(function () {
+        var grid = $("#Grid").data("kendoGrid");
 
-        $(function () {
-            var grid = $("#Grid").data("kendoGrid");
+        // WebAPI needs the ID of the entity to be part of the URL e.g. PUT /api/Product/80
+        grid.dataSource.transport.options.update.url = function (data) {
+            return "api/Product/" + data.Id;
+        }
 
-            // WebAPI needs the ID of the entity to be part of the URL e.g. PUT /api/Product/80
-            grid.dataSource.transport.options.update.url = function (data) {
-                return "api/Product/" + data.Id;
-            }
+        // WebAPI needs the ID of the entity to be part of the URL e.g. DELETE /api/Product/80
+        grid.dataSource.transport.options.destroy.url = function (data) {
+            return "api/Product/" + data.Id;
+        }
+    });
 
-            // WebAPI needs the ID of the entity to be part of the URL e.g. DELETE /api/Product/80
-            grid.dataSource.transport.options.destroy.url = function (data) {
-                return "api/Product/" + data.Id;
-            }
-        });
-
-    </script>
-</div>
-
-<div id="exemplu">
-    <div id="incaunul">
-    </div>
-    <script type="text/javascript">
-        $(document).ready(function () {
-            $("#incaunul").kendoGrid({
-                dataSource: {
-                    type: "json",
-                    transport: {
-                        read: "/api/Product"
-                        //read: {
-                        //    url: "/api/Product",
-                        //    type: "GET",
-                        //    dataType: "json"
-                        //}
-                        //parameterMap: function (data, operation) {
-                        //    data.gridId = "aici o sa vina identificatorul gridului";
-                        //    data.includeProfile = true;
-                        //    return data;
-                        //},
-                    },
-                    schema: { model: { id: "Id" } },
-                    pageSize: 20
-
-                },
-                height: 550,
-                groupable: true,
-                sortable: true,
-                pageable: {
-                    refresh: true,
-                    pageSizes: true,
-                    buttonCount: 5
-                },
-                columns: [{
-                    field: "Id",
-                    width: 100
-                }, {
-                    field: "ProductName",
-                    title: "Product Name"
-                    //}, {
-                    //    field: "UnitPrice",
-                    //    title: "Unit Price"
-                    //}, {
-                    //    field: "UnitsInStock",
-                    //    title: "Units in stock"
-                }]
-            });
-        });
-    </script>
-</div>
-<div id="example">
-    <div id="gridulmeu"></div>
-
-    <script>
-        $(document).ready(function () {
-            $("#gridulmeu").kendoGrid({
-                dataSource: {
-                    type: "odata",
-                    transport: {
-                        read: "http://demos.telerik.com/kendo-ui/service/Northwind.svc/Customers"
-                    },
-                    pageSize: 20
-                },
-                height: 550,
-                groupable: true,
-                sortable: true,
-                pageable: {
-                    refresh: true,
-                    pageSizes: true,
-                    buttonCount: 5
-                },
-                columns: [{
-                    field: "ContactName",
-                    title: "Contact Name",
-                    width: 200
-                }, {
-                    field: "ContactTitle",
-                    title: "Contact Title"
-                }, {
-                    field: "CompanyName",
-                    title: "Company Name"
-                }, {
-                    field: "Country",
-                    width: 150
-                }]
-            });
-        });
-    </script>
-</div>
+</script>
