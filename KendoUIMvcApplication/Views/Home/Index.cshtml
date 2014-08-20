@@ -31,10 +31,10 @@
             {
                 model.Id(p => p.Id);
             })
-            .Read(read => read.Url("api/Product").Type(HttpVerbs.Get))
-            .Create(create => create.Url("api/Product").Type(HttpVerbs.Post))
-            .Update(update => update.Url("api/Product").Type(HttpVerbs.Put))
-            .Destroy(destroy => destroy.Url("api/Product").Type(HttpVerbs.Delete))
+            .Read(read => read.Url("/api/Product").Type(HttpVerbs.Get))
+            .Create(create => create.Url("/api/Product").Type(HttpVerbs.Post))
+            .Update(update => update.Url("/api/Product").Type(HttpVerbs.Put))
+            .Destroy(destroy => destroy.Url("/api/Product").Type(HttpVerbs.Delete))
       )
 )
 
@@ -51,6 +51,18 @@
         // WebAPI needs the ID of the entity to be part of the URL e.g. DELETE /api/Product/80
         grid.dataSource.transport.options.destroy.url = function (data) {
             return "api/Product/" + data.Id;
+        }
+
+        grid.dataSource.transport.oldParameterMap = grid.dataSource.transport.parameterMap;
+
+        grid.dataSource.transport.parameterMap = function (data, operation) {
+            if (grid.dataSource.transport.oldParameterMap != null) {
+                data = grid.dataSource.transport.oldParameterMap(data, operation);
+            }
+            data.gridId = window.location.pathname + '__' + grid.table.context.id;
+            data.includeProfile = true;
+            return data;
+
         }
     });
 

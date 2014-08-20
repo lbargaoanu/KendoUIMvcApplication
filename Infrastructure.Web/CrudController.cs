@@ -5,6 +5,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Web.Http;
+using System.Web.Http.ModelBinding;
 using System.Web.Http.Results;
 using Infrastructure.Web.GridProfile;
 using Kendo.Mvc.Extensions;
@@ -45,7 +46,7 @@ namespace Infrastructure.Web
             return Mediator.Send(command);
         }
 
-        public virtual DataSourceResult GetAll(DataSourceRequest request)
+        public virtual DataSourceResult GetAll([ModelBinder] GridProfileDataSourceRequest request)
         {
             return GetAllEntities().ToDataSourceResult(request);
         }

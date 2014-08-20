@@ -10,6 +10,7 @@ using System.Web.Http.Results;
 using FluentAssertions;
 using FluentAssertions.Equivalency;
 using Infrastructure.Web;
+using Infrastructure.Web.GridProfile;
 using Kendo.Mvc.UI;
 using Moq;
 using Moq.Language.Flow;
@@ -148,7 +149,7 @@ namespace Infrastructure.Test
 
         public static DataSourceResult HandleGetAll<TEntity, TContext>(this CrudController<TContext, TEntity> controller) where TEntity : VersionedEntity where TContext : BaseContext
         {
-            return controller.Action(c => c.GetAll(new DataSourceRequest{ PageSize = PageSize, Page = PageCount }));
+            return controller.Action(c => c.GetAll(new GridProfileDataSourceRequest(){ PageSize = PageSize, Page = PageCount }));
         }
 
         public static IHttpActionResult HandleGetById<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id) where TEntity : VersionedEntity where TContext : BaseContext
