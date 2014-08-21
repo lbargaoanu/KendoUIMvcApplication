@@ -71,11 +71,7 @@ namespace Infrastructure.Web
         public virtual IHttpActionResult Get(int id)
         {
             var entity = GetById(id);
-            if (entity == null)
-            {
-                return NotFound();
-            }
-            return Ok(entity);
+            return CheckExists(entity, Ok(entity));
         }
 
         public virtual IHttpActionResult Post(TViewModel entity)
@@ -83,7 +79,7 @@ namespace Infrastructure.Web
             Add(entity);
             Context.SaveChanges();
             var result = GetById(entity.Id);
-            return Created(result);
+            return CheckExists(result, Created(result));
         }
 
         public virtual IHttpActionResult Delete(int id)
@@ -121,7 +117,16 @@ namespace Infrastructure.Web
                 }
             }
             var result = GetById(entity.Id);
-            return Ok(result);
+            return CheckExists(result, Ok(result));
+        }
+
+        protected IHttpActionResult CheckExists(TViewModel entity, IHttpActionResult result)
+        {
+            if(entity == null)
+            {
+                return NotFound();
+            }
+            return result;
         }
 
         protected internal OkNegotiatedContentResult<Wrapper> Ok(TViewModel entity)

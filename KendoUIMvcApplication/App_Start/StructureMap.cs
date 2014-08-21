@@ -30,7 +30,6 @@ namespace KendoUIMvcApplication
                     s.AddAllTypesOf(typeof(IQueryHandler<,>));
                     s.AddAllTypesOf(typeof(ICommandHandler<,>));
                 });
-                i.For<IGridProfileStorage>().UseIfNone<GridProfileStorage>();
             });
         }
     }
