@@ -1,5 +1,7 @@
 ﻿using Customers;
 using Infrastructure.Web;
+using Infrastructure.Web.GridProfile;
+using KendoUIMvcApplication.Infrastructure;
 using Northwind;
 using StructureMap;
 using StructureMap.Web;
@@ -15,7 +17,7 @@ namespace KendoUIMvcApplication
 
         public static void Register()
         {
-            ObjectFactory.Initialize(i => 
+            ObjectFactory.Initialize(i =>
             {
                 i.RegisterContext<ProductServiceContext>();
                 i.RegisterContext<CustomerContext>();
@@ -28,6 +30,7 @@ namespace KendoUIMvcApplication
                     s.AddAllTypesOf(typeof(IQueryHandler<,>));
                     s.AddAllTypesOf(typeof(ICommandHandler<,>));
                 });
+                i.For<IGridProfileStorage>().UseIfNone<GridProfileStorage>();
             });
         }
     }

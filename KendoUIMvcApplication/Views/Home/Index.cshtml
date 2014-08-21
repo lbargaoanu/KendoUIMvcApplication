@@ -20,6 +20,7 @@
       .ToolBar(tools =>
       {
           tools.Create();
+          tools.Custom().Name("SaveProfile").Text("Salveaza profil").Url("javascript:$('#Grid').data('kendoGrid').saveProfile()");
       })
       .Editable(editable => editable.Mode(GridEditMode.PopUp))
       .Sortable()
@@ -31,7 +32,10 @@
             {
                 model.Id(p => p.Id);
             })
-            .Read(read => read.Url("/api/Product").Type(HttpVerbs.Get))
+            .Read(read =>
+                read.Url("/api/Product")
+                    .Type(HttpVerbs.Get)
+                    .Data("getGridData"))
             .Create(create => create.Url("/api/Product").Type(HttpVerbs.Post))
             .Update(update => update.Url("/api/Product").Type(HttpVerbs.Put))
             .Destroy(destroy => destroy.Url("/api/Product").Type(HttpVerbs.Delete))
@@ -53,17 +57,42 @@
             return "api/Product/" + data.Id;
         }
 
-        grid.dataSource.transport.oldParameterMap = grid.dataSource.transport.parameterMap;
+        grid.profileId = window.location.pathname + '__' + grid.table.context.id;
 
-        grid.dataSource.transport.parameterMap = function (data, operation) {
-            if (grid.dataSource.transport.oldParameterMap != null) {
-                data = grid.dataSource.transport.oldParameterMap(data, operation);
-            }
-            data.gridId = window.location.pathname + '__' + grid.table.context.id;
-            data.includeProfile = true;
-            return data;
+        grid.saveProfile = function () {
+            var dataSource = grid.dataSource;
 
+            var state = kendo.stringify({
+                page: dataSource.page(),
+                pageSize: dataSource.pageSize(),
+                sort: dataSource.sort(),
+                group: dataSource.group(),
+                filter: dataSource.filter(),
+            });
+
+            $.ajax({
+                url: "/api/GridProfile",
+                type: "POST",
+                data: {
+                    GridId: grid.profileId,
+                    State: state
+                }
+            });
         }
     });
 
+    function getGridData(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        if (grid.profileId == undefined)//
+            return {
+                gridId: window.location.pathname + '__' + grid.table.context.id,
+                includeProfile: true
+            };
+        else {
+            return {
+                gridId: grid.profileId,
+                includeProfile: false
+            };
+        }
+    }
 </script>

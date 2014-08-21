@@ -14,7 +14,9 @@ using StructureMap.Attributes;
 
 namespace Infrastructure.Web
 {
-    public abstract class ContextController<TContext, TViewModel> : ApiController where TContext : BaseContext where TViewModel : IEntity
+    public abstract class ContextController<TContext, TViewModel> : ApiController
+        where TContext : BaseContext
+        where TViewModel : IEntity
     {
         protected abstract IQueryable<TViewModel> GetAllEntities();
         protected abstract void Add(TViewModel entity);
@@ -36,6 +38,9 @@ namespace Infrastructure.Web
         [SetterProperty]
         public TContext Context { get; set; }
 
+        [SetterProperty]
+        public IGridProfileStorage GridProfileStorage { get; set; }
+
         protected TResponse Get<TResponse>(IQuery<TResponse> query)
         {
             return Mediator.Get(query);
@@ -46,9 +51,16 @@ namespace Infrastructure.Web
             return Mediator.Send(command);
         }
 
-        public virtual DataSourceResult GetAll([ModelBinder] GridProfileDataSourceRequest request)
+        public virtual GridProfileDataSourceResult GetAll(GridProfileDataSourceRequest request)
         {
-            return GetAllEntities().ToDataSourceResult(request);
+            var result = new GridProfileDataSourceResult(GetAllEntities().ToDataSourceResult(request));
+
+            if (request.IncludeProfile && GridProfileStorage != null)
+            {
+                result.Profile = GridProfileStorage.LoadProfile(request.GridId);
+            }
+
+            return result;
         }
 
         protected virtual TViewModel Find(int id)
@@ -59,7 +71,7 @@ namespace Infrastructure.Web
         public virtual IHttpActionResult Get(int id)
         {
             var entity = GetById(id);
-            if(entity == null)
+            if (entity == null)
             {
                 return NotFound();
             }
@@ -77,7 +89,7 @@ namespace Infrastructure.Web
         public virtual IHttpActionResult Delete(int id)
         {
             var entity = Find(id);
-            if(entity == null)
+            if (entity == null)
             {
                 return NotFound();
             }
@@ -87,7 +99,7 @@ namespace Infrastructure.Web
 
         public virtual IHttpActionResult Put(int id, TViewModel entity)
         {
-            if(id != entity.Id)
+            if (id != entity.Id)
             {
                 return BadRequest();
             }
@@ -96,10 +108,10 @@ namespace Infrastructure.Web
                 Modify(entity);
                 Context.SaveChanges();
             }
-            catch(Exception)
+            catch (Exception)
             {
                 OnModifyError(entity);
-                if(Find(entity.Id) == null)
+                if (Find(entity.Id) == null)
                 {
                     return NotFound();
                 }
@@ -123,7 +135,9 @@ namespace Infrastructure.Web
         }
     }
 
-    public class CrudController<TContext, TEntity> : ContextController<TContext, TEntity> where TEntity : VersionedEntity where TContext : BaseContext
+    public class CrudController<TContext, TEntity> : ContextController<TContext, TEntity>
+        where TEntity : VersionedEntity
+        where TContext : BaseContext
     {
         protected void SetRowVersion(TEntity source, TEntity destination)
         {
@@ -143,7 +157,7 @@ namespace Infrastructure.Web
         protected virtual IQueryable<TEntity> GetAllEntities(Expression<Func<TEntity, bool>> where)
         {
             IQueryable<TEntity> entities = Context.Set<TEntity>();
-            if(where != null)
+            if (where != null)
             {
                 entities = entities.Where(where);
             }
@@ -207,7 +221,7 @@ namespace Infrastructure.Web
     {
         [Key]
         public int Id { get; set; }
-        
+
         [NotMapped]
         public bool Exists
         {

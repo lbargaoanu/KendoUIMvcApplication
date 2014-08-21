@@ -22,7 +22,7 @@ namespace Infrastructure.Web
 
     public class DataSourceRequestModelBinder : IModelBinder
     {
-        public bool BindModel(HttpActionContext actionContext, ModelBindingContext bindingContext)
+        public virtual bool BindModel(HttpActionContext actionContext, ModelBindingContext bindingContext)
         {
             var request = new DataSourceRequest();
             string sort, group, filter, aggregates;
@@ -55,7 +55,7 @@ namespace Infrastructure.Web
             return true;
         }
 
-        private bool TryGetValue<T>(ModelBindingContext bindingContext, string key, out T result)
+        protected bool TryGetValue<T>(ModelBindingContext bindingContext, string key, out T result)
         {
             var value = bindingContext.ValueProvider.GetValue(key);
             if(value == null)
