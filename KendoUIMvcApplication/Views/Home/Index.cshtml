@@ -20,6 +20,7 @@
       .ToolBar(tools =>
       {
           tools.Create();
+          tools.Custom().Name("SaveProfile").Text("Salveaza profil").Url("javascript:$('#Grid').data('kendoGrid').saveProfile()");
       })
       .Editable(editable => editable.Mode(GridEditMode.PopUp))
       .Sortable()
@@ -31,27 +32,67 @@
             {
                 model.Id(p => p.Id);
             })
-            .Read(read => read.Url("api/Product").Type(HttpVerbs.Get))
-            .Create(create => create.Url("api/Product").Type(HttpVerbs.Post))
-            .Update(update => update.Url("api/Product").Type(HttpVerbs.Put))
-            .Destroy(destroy => destroy.Url("api/Product").Type(HttpVerbs.Delete))
+            .Read(read =>
+                read.Url("/api/Product")
+                    .Type(HttpVerbs.Get)
+                    .Data("getGridData"))
+            .Create(create => create.Url("/api/Product").Type(HttpVerbs.Post))
+            .Update(update => update.Url("/api/Product").Type(HttpVerbs.Put))
+            .Destroy(destroy => destroy.Url("/api/Product").Type(HttpVerbs.Delete))
       )
 )
 
 <script>
 
-$(function() {
-    var grid = $("#Grid").data("kendoGrid");
+    $(function () {
+        var grid = $("#Grid").data("kendoGrid");
 
-    // WebAPI needs the ID of the entity to be part of the URL e.g. PUT /api/Product/80
-    grid.dataSource.transport.options.update.url = function(data) {
-        return "api/Product/" + data.Id;
+        // WebAPI needs the ID of the entity to be part of the URL e.g. PUT /api/Product/80
+        grid.dataSource.transport.options.update.url = function (data) {
+            return "api/Product/" + data.Id;
+        }
+
+        // WebAPI needs the ID of the entity to be part of the URL e.g. DELETE /api/Product/80
+        grid.dataSource.transport.options.destroy.url = function (data) {
+            return "api/Product/" + data.Id;
+        }
+
+        grid.profileId = window.location.pathname + '__' + grid.table.context.id;
+
+        grid.saveProfile = function () {
+            var dataSource = grid.dataSource;
+
+            var state = kendo.stringify({
+                page: dataSource.page(),
+                pageSize: dataSource.pageSize(),
+                sort: dataSource.sort(),
+                group: dataSource.group(),
+                filter: dataSource.filter(),
+            });
+
+            $.ajax({
+                url: "/api/GridProfile",
+                type: "POST",
+                data: {
+                    GridId: grid.profileId,
+                    State: state
+                }
+            });
+        }
+    });
+
+    function getGridData(e) {
+        var grid = $("#Grid").data("kendoGrid");
+        if (grid.profileId == undefined)//
+            return {
+                gridId: window.location.pathname + '__' + grid.table.context.id,
+                includeProfile: true
+            };
+        else {
+            return {
+                gridId: grid.profileId,
+                includeProfile: false
+            };
+        }
     }
-
-    // WebAPI needs the ID of the entity to be part of the URL e.g. DELETE /api/Product/80
-    grid.dataSource.transport.options.destroy.url = function(data) {
-        return "api/Product/" + data.Id;
-    }
-});
-
 </script>
