@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -53,7 +54,7 @@ namespace Infrastructure.Test
             // act
             var response = new TController().HandleGetAll();
             // assert
-            response.AssertIs<TEntity>(newEntities,where ?? True);
+            response.AssertIs<TEntity>(newEntities, where ?? True);
         }
 
         [Theory, ContextAutoData]
@@ -79,6 +80,11 @@ namespace Infrastructure.Test
         [Theory, ContextAutoData]
         public virtual void ShouldModify(TEntity newEntity, TEntity modified, TContext createContext, TContext readContext)
         {
+            ShouldModifyCore(newEntity, modified, createContext, readContext);
+        }
+
+        public virtual void ShouldModifyCore(TEntity newEntity, TEntity modified, TContext createContext, TContext readContext, Dictionary<Type, object> injected = null)
+        {
             // arrange
             createContext.AddAndSave(newEntity);
             modified.Id = newEntity.Id;
@@ -88,7 +94,7 @@ namespace Infrastructure.Test
 
             var controller = new TController();
             // act
-            var response = controller.PutAndSave(newEntity);
+            var response = controller.PutAndSave(newEntity, injected);
             // assert
             response.AssertIsOk(newEntity);
             var entities = readContext.Set<TEntity>();
@@ -122,14 +128,20 @@ namespace Infrastructure.Test
         }
 
         [Theory, ContextAutoData]
-        public virtual void ShouldNotModifyConcurrent(TEntity entity, TContext createContext, TContext modifyContext, byte[] rowVersion)
+        public virtual void ShouldNotModifyConcurrent(TEntity entity, TContext createContext, TContext modifyContext)
+        {
+            ShouldNotModifyConcurrentCore(entity, createContext, modifyContext);
+        }
+
+        public virtual void ShouldNotModifyConcurrentCore(TEntity entity, TContext createContext, TContext modifyContext, Dictionary<Type, object> injected = null)
         {
             // arrange
             createContext.AddAndSave(entity);
-            modifyContext.Set<TEntity>().Find(entity.Id).RowVersion = rowVersion;
+            var newEntity = modifyContext.Set<TEntity>().Find(entity.Id);
+            modifyContext.Entry(newEntity).State = EntityState.Modified;
             modifyContext.SaveChanges();
             // act & assert
-            Assert.Throws<DbUpdateConcurrencyException>(()=>new TController().PutAndSave(entity));
+            Assert.Throws<DbUpdateConcurrencyException>(() => new TController().PutAndSave(entity, injected));
         }
     }
 }

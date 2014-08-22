@@ -48,11 +48,15 @@ namespace Infrastructure.Test
             };
             context.SavingChanges += (e, args) =>
             {
-                var modifiedEntities = new List<object>();
+                List<object> modifiedEntities = null;
                 foreach(var entry in args.Context.ChangeTracker.Entries().Where(entry => entry.Entity is VersionedEntity))
                 {
                     if(entry.State == EntityState.Modified)
                     {
+                        if(modifiedEntities == null)
+                        {
+                            modifiedEntities = new List<object>();
+                        }
                         modifiedEntities.Add(entry.Entity);
                     }
                     else if(entry.State == EntityState.Added)
@@ -64,8 +68,9 @@ namespace Infrastructure.Test
             };
             context.SavedChanges += (e, args) =>
             {
-                if(SetRowVersion((IEnumerable<object>)args.State))
+                if(args.State != null)
                 {
+                    SetRowVersion((IEnumerable<object>)args.State);
                     args.Context.SaveChanges();
                 }
             };
@@ -109,7 +114,6 @@ namespace Infrastructure.Test
 
         public static void Initialize(Action<TContext, IFixture> seedDatabase = null)
         {
-            ObjectFactory.Configure(c => c.For<TContext>().Transient().Use(_ => New()));
             if(seedDatabase != null)
             {
                 seedDatabase(context, ContextAutoDataAttribute.CreateFixture(typeof(TContext)));
@@ -117,15 +121,12 @@ namespace Infrastructure.Test
             context.SaveChanges();
         }
 
-        private static bool SetRowVersion(IEnumerable<object> entities)
+        private static void SetRowVersion(IEnumerable<object> entities)
         {
-            bool changes = false;
             foreach(var entity in entities)
             {
                 SetRowVersion(entity);
-                changes = true;
             }
-            return changes;
         }
 
         private static void SetRowVersion(object entity)

@@ -10,21 +10,10 @@ namespace Infrastructure.Web
         public DbModelBuilder ModelBuilder { get; set; }
     }
 
-    public class SaveChangesEventArgs
+    public class SaveChangesEventArgs : EventArgs
     {
         public object State { get; set; }
         public BaseContext Context { get; set; }
-    }
-    public class MyDbContextInitializer : DropCreateDatabaseIfModelChanges<BaseContext>
-    {
-        protected override void Seed(BaseContext dbContext)
-        {
-            // seed data
-
-            base.Seed(dbContext);
-
-
-        }
     }
 
     public class BaseContext : DbContext
@@ -57,13 +46,13 @@ namespace Infrastructure.Web
             modelBuilder.Types().Configure(c =>
             {
                 c.Property("Id").HasColumnName(c.ClrType.Name + "ID");
-                if (Mapper.FindTypeMapFor(c.ClrType, c.ClrType) == null)
+                if(Mapper.FindTypeMapFor(c.ClrType, c.ClrType) == null)
                 {
                     Mapper.CreateMap(c.ClrType, c.ClrType).IgnoreProperties(c.ClrType, p => p.IsNavigationProperty());
                 }
             });
             var handler = ModelCreating;
-            if (handler != null)
+            if(handler != null)
             {
                 handler(this, new ModelCreatingEventArgs { ModelBuilder = modelBuilder });
             }
@@ -84,7 +73,7 @@ namespace Infrastructure.Web
 
         private void ExecuteHandler(EventHandler<SaveChangesEventArgs> handler, ref SaveChangesEventArgs args)
         {
-            if (handler == null || executingEvent)
+            if(handler == null || executingEvent)
             {
                 return;
             }
