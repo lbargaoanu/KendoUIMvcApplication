@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Web.Http.Controllers;
@@ -131,6 +132,7 @@ namespace Infrastructure.Web
             }
             throw new ArgumentException("'" + lambda.Body + "' is not a method access.");
         }
+
         public static void Assert(this JsonReader reader, JsonToken token)
         {
             if(reader.TokenType != token)
@@ -144,10 +146,10 @@ namespace Infrastructure.Web
     {
         public override void OnActionExecuting(HttpActionContext actionContext)
         {
-            //if(actionContext.ModelState.IsValid == false)
-            //{
-            //    actionContext.Response = actionContext.Request.CreateErrorResponse(HttpStatusCode.BadRequest, actionContext.ModelState);
-            //}
+            if(actionContext.ModelState.IsValid == false)
+            {
+                actionContext.Response = actionContext.Request.CreateErrorResponse(HttpStatusCode.BadRequest, actionContext.ModelState);
+            }
         }
     }
 
@@ -174,11 +176,35 @@ namespace Infrastructure.Web
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             writer.WriteStartArray();
-            foreach (var item in (byte[])value)
+            foreach(var item in (byte[])value)
             {
                 writer.WriteValue(item);
             }
             writer.WriteEndArray();
+        }
+    }
+
+    public class ContextLifecyleObjectCache : LifecycleObjectCache
+    {
+        private List<DbContext> contexts = new List<DbContext>();
+
+        public void SaveChanges()
+        {
+            foreach(var dbContext in contexts)
+            {
+                dbContext.SaveChanges();
+            }
+        }
+
+        protected override object buildWithSession(Type pluginType, Instance instance, StructureMap.IBuildSession session)
+        {
+            var obj = base.buildWithSession(pluginType, instance, session);
+            var context = obj as DbContext;
+            if(context != null)
+            {
+                contexts.Add(context);
+            }
+            return obj;
         }
     }
 
@@ -192,33 +218,8 @@ namespace Infrastructure.Web
             {
                 return;
             }
-            var contexts = (ContextLifecyleObjectCache)WebLifecycles.HttpContext.FindCache(null);
+            var contexts = (ContextLifecyleObjectCache) WebLifecycles.HttpContext.FindCache(null);
             contexts.SaveChanges();
         }
     }
-
-    
-    public class ContextLifecyleObjectCache : LifecycleObjectCache
-   {
-       private List<DbContext> contexts = new List<DbContext>();
-
-       public void SaveChanges()
-       {
-           foreach(var dbContext in contexts)
-           {
-               dbContext.SaveChanges();
-           }
-       }
-
-       protected override object buildWithSession(Type pluginType, Instance instance, StructureMap.IBuildSession session)
-       {
-           var obj = base.buildWithSession(pluginType, instance, session);
-           var context = obj as DbContext;
-           if(context != null)
-           {
-               contexts.Add(context);
-           }
-           return obj;
-       }
-   }
 }

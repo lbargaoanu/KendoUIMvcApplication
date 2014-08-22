@@ -12,13 +12,15 @@ namespace Infrastructure.Web
 
         public Mediator(IDependencyScope dependencyScope)
         {
-            this.DependencyResolver = dependencyScope;
+            DependencyResolver = dependencyScope;
         }
+
         [DefaultConstructor]
         public Mediator(IDependencyResolver dependencyResolver)
         {
-            this.DependencyResolver = dependencyResolver;
+            DependencyResolver = dependencyResolver;
         }
+
         public TResult Get<TResult>(IQuery<TResult> request)
         {
             return RunHandler<TResult>(typeof(IQueryHandler<,>), request);
@@ -41,9 +43,9 @@ namespace Infrastructure.Web
         }
     }
 
-    public struct Void
+    public struct NoResult
     {
-        public static readonly Void Default = new Void();
+        public static readonly NoResult Default = new NoResult();
     }
 
     public interface IMediator
@@ -56,14 +58,16 @@ namespace Infrastructure.Web
 
     public interface ICommand<out TResult> { }
 
-    public interface ICommand : ICommand<Void> { }
+    public interface ICommand : ICommand<NoResult> { }
 
     public interface IQueryHandler<in TQuery, out TResponse> where TQuery : IQuery<TResponse>
     {
         TResponse Execute(TQuery query);
     }
 
-    public abstract class QueryHandler<TContext, TQuery, TResponse> : IQueryHandler<TQuery, TResponse> where TQuery : IQuery<TResponse> where TContext : DbContext
+    public abstract class QueryHandler<TContext, TQuery, TResponse> : IQueryHandler<TQuery, TResponse>
+        where TQuery : IQuery<TResponse>
+        where TContext : DbContext
     {
         [SetterProperty]
         public TContext Context { get; set; }
@@ -81,7 +85,13 @@ namespace Infrastructure.Web
         TResult Execute(TCommand command);
     }
 
-    public abstract class CommandHandler<TContext, TCommand, TResult> : ICommandHandler<TCommand, TResult> where TCommand : ICommand<TResult> where TContext : DbContext
+    public interface ICommandHandler<in TCommand> : ICommandHandler<TCommand, NoResult> where TCommand : ICommand<NoResult>
+    {
+    }
+
+    public abstract class CommandHandler<TContext, TCommand, TResult> : ICommandHandler<TCommand, TResult>
+        where TCommand : ICommand<TResult>
+        where TContext : DbContext
     {
         [SetterProperty]
         public TContext Context { get; set; }
@@ -94,12 +104,14 @@ namespace Infrastructure.Web
         public abstract TResult Handle(TCommand command);
     }
 
-    public abstract class CommandHandler<TContext, TCommand> : ICommandHandler<TCommand, Void> where TCommand : ICommand where TContext : DbContext
+    public abstract class CommandHandler<TContext, TCommand> : ICommandHandler<TCommand, NoResult>
+        where TCommand : ICommand
+        where TContext : DbContext
     {
-        public Void Execute(TCommand command)
+        public NoResult Execute(TCommand command)
         {
             Handle(command);
-            return Void.Default;
+            return NoResult.Default;
         }
 
         protected void SetRowVersion<TEntity>(TEntity source, TEntity destination) where TEntity : VersionedEntity

@@ -10,6 +10,7 @@ using System.Web.Http.Results;
 using FluentAssertions;
 using FluentAssertions.Equivalency;
 using Infrastructure.Web;
+using Infrastructure.Web.GridProfile;
 using Kendo.Mvc.UI;
 using Moq;
 using Moq.Language.Flow;
@@ -26,7 +27,7 @@ namespace Infrastructure.Test
     {
         private const int PageSize = 3;
         private const int PageCount = 2;
-        private static string[] IntegerTypes = new[] { "int", "integer", "bigint", "smallint", "tinyint", "bit" };
+        private static string[] IntegerTypes = new[] { "int", "bigint", "smallint", "tinyint", "bit" };
         private static string[] RealTypes = new[] { "double", "decimal", "float", "real" };
 
         public static ISetupGetter<TMocked, TProperty> SetupGet<TMocked, TProperty>(this TMocked obj, Expression<Func<TMocked, TProperty>> expression) where TMocked : class
@@ -52,29 +53,29 @@ namespace Infrastructure.Test
         public static string GetType(EdmProperty property)
         {
             TypeUsage typeUsage = property.TypeUsage;
-            if (typeUsage != null)
+            if(typeUsage != null)
             {
                 EdmType edmType = typeUsage.EdmType;
-                if (edmType != null)
+                if(edmType != null)
                 {
-                    if (edmType.BaseType != null && edmType.BaseType.Name == "String")
+                    if(edmType.BaseType != null && edmType.BaseType.Name == "String")
                     {
                         return "TEXT";
                     }
                     var typeName = edmType.Name.ToLower();
-                    if (IntegerTypes.Contains(typeName))
+                    if(IntegerTypes.Contains(typeName))
                     {
                         return "INTEGER";
                     }
-                    else if (RealTypes.Contains(typeName))
+                    else if(RealTypes.Contains(typeName))
                     {
                         return "REAL";
                     }
-                    else if (typeName == "guid")
+                    else if(typeName == "guid")
                     {
                         return "UNIQUEIDENTIFIER";
                     }
-                    else if (typeName == "datetime" || typeName == "datetimeoffset")
+                    else if(typeName == "datetime" || typeName == "datetimeoffset")
                     {
                         return "DATETIME";
                     }
@@ -93,7 +94,7 @@ namespace Infrastructure.Test
         public static TEntity AddAndSave<TEntity>(this DbContext context, params TEntity[] entities) where TEntity : VersionedEntity
         {
             var dbSet = context.Set<TEntity>();
-            foreach (var entity in entities)
+            foreach(var entity in entities)
             {
                 dbSet.Add(entity);
             }
@@ -103,7 +104,7 @@ namespace Infrastructure.Test
 
         public static void DetachAll(this DbContext context)
         {
-            foreach (var entry in context.ChangeTracker.Entries())
+            foreach(var entry in context.ChangeTracker.Entries())
             {
                 entry.State = EntityState.Detached;
             }
@@ -114,11 +115,9 @@ namespace Infrastructure.Test
             return type == typeof(int?) || type == typeof(int);
         }
 
-        public static void HandleAndSave<TCommand, TContext>(this CommandHandler<TContext, TCommand> handler, TCommand command)
-            where TCommand : ICommand
-            where TContext : BaseContext
+        public static void HandleAndSave<TCommand, TContext>(this CommandHandler<TContext, TCommand> handler, TCommand command) where TCommand : ICommand where TContext : BaseContext
         {
-            if (handler.Context == null)
+            if(handler.Context == null)
             {
                 handler.Context = TestContextFactory<TContext>.New();
             }
@@ -133,37 +132,27 @@ namespace Infrastructure.Test
             return controller.Action(c => c.Put(entity.Id, entity), injected);
         }
 
-        public static IHttpActionResult PutAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id, TEntity entity)
-            where TEntity : VersionedEntity
-            where TContext : BaseContext
+        public static IHttpActionResult PutAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id, TEntity entity) where TEntity : VersionedEntity where TContext : BaseContext
         {
             return controller.Action(c => c.Put(id, entity));
         }
 
-        public static IHttpActionResult DeleteAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id)
-            where TEntity : VersionedEntity
-            where TContext : BaseContext
+        public static IHttpActionResult DeleteAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id) where TEntity : VersionedEntity where TContext : BaseContext
         {
             return controller.Action(c => c.Delete(id));
         }
 
-        public static IHttpActionResult PostAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, TEntity entity)
-            where TEntity : VersionedEntity
-            where TContext : BaseContext
+        public static IHttpActionResult PostAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, TEntity entity) where TEntity : VersionedEntity where TContext : BaseContext
         {
             return controller.Action(c => c.Post(entity));
         }
 
-        public static DataSourceResult HandleGetAll<TEntity, TContext>(this CrudController<TContext, TEntity> controller)
-            where TEntity : VersionedEntity
-            where TContext : BaseContext
+        public static DataSourceResult HandleGetAll<TEntity, TContext>(this CrudController<TContext, TEntity> controller) where TEntity : VersionedEntity where TContext : BaseContext
         {
-            return controller.Action(c => c.GetAll(new DataSourceRequest() { PageSize = PageSize, Page = PageCount }));
+            return controller.Action(c => c.GetAll(new GridProfileDataSourceRequest(){ PageSize = PageSize, Page = PageCount }));
         }
 
-        public static IHttpActionResult HandleGetById<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id)
-            where TEntity : VersionedEntity
-            where TContext : BaseContext
+        public static IHttpActionResult HandleGetById<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id) where TEntity : VersionedEntity where TContext : BaseContext
         {
             return controller.Action(c => c.Get(id));
         }
@@ -172,9 +161,9 @@ namespace Infrastructure.Test
             where TEntity : VersionedEntity
             where TContext : BaseContext
         {
-            using (var scope = new AutofixtureDependencyScope<TContext>(injected))
+            using(var scope = new AutofixtureDependencyScope<TContext>(injected))
             {
-                if (controller.Context == null)
+                if(controller.Context == null)
                 {
                     controller.Context = (TContext)scope.GetService(typeof(TContext));
                     controller.Mediator = new Mediator(scope);
@@ -187,13 +176,13 @@ namespace Infrastructure.Test
 
         public static void AssertIs<TEntity>(this DataSourceResult result, TEntity[] entities, Func<TEntity, bool> where)
         {
-            if (where == null)
-        {
+             if(where == null)
+            {
                 where = e => true;
             }
             var length = entities.Count(where);
             Assert.Equal(null, result.Errors);
-            var data = (List<TEntity>)result.Data;
+            var data = (List<TEntity>) result.Data;
             var expectedCount = (length >= PageCount * PageSize) ? PageSize : length - PageSize;
             data.Count(e => e is TEntity).Should().BeGreaterOrEqualTo(expectedCount, "Sa intoarca cel putin PageSize entities (se poate sa avem date din alte teste)");
             result.Total.Should().BeGreaterOrEqualTo(length, "Se poate sa avem date din alte teste");
@@ -245,7 +234,7 @@ namespace Infrastructure.Test
 
         public static void ShouldAllBeEquivalentTo<TEntity>(this IEnumerable<TEntity> subject, IEnumerable<TEntity> expectation, string reason = "", params object[] reasonArgs) where TEntity : Entity
         {
-            subject.ShouldAllBeEquivalentTo(expectation, c => c.ExcludeNavigationProperties<TEntity>(), reason, reasonArgs);
+            subject.ShouldAllBeEquivalentTo(expectation, c=>c.ExcludeNavigationProperties<TEntity>(), reason, reasonArgs);
         }
 
         public static void ShouldAllBeQuasiEquivalentTo<TEntity>(this IEnumerable<TEntity> subject, IEnumerable<TEntity> expectation, string reason = "", params object[] reasonArgs) where TEntity : Entity
@@ -260,17 +249,17 @@ namespace Infrastructure.Test
 
         private static Func<EquivalencyAssertionOptions<TEntity>, EquivalencyAssertionOptions<TEntity>> ExcludeInfrastructure<TEntity>() where TEntity : Entity
         {
-            return c => c.Excluding(e => e.Id).Excluding(s => s.PropertyPath == "RowVersion").ExcludeNavigationProperties();
+            return c => c.Excluding(e => e.Id).Excluding(s=>s.PropertyPath=="RowVersion").ExcludeNavigationProperties();
         }
 
         public static void ShouldBeEquivalentTo<TEntity>(this TEntity subject, TEntity expectation, string reason = "", params object[] reasonArgs) where TEntity : Entity
         {
-            AssertionExtensions.ShouldBeEquivalentTo(subject, expectation, e => e.ExcludeNavigationProperties(), reason, reasonArgs);
+            AssertionExtensions.ShouldBeEquivalentTo(subject, expectation, e=>e.ExcludeNavigationProperties(), reason, reasonArgs);
         }
 
         public static void ShouldHaveTheSameIdsAs<TEntity>(this IEnumerable<TEntity> subject, IEnumerable<TEntity> expectation) where TEntity : Entity
         {
-            Assert.Equal(expectation.OrderBy(t => t.Id).Select(t => t.Id), subject.OrderBy(t => t.Id).Select(t => t.Id));
+            Assert.Equal(expectation.OrderBy(t=>t.Id).Select(t => t.Id), subject.OrderBy(t=>t.Id).Select(t => t.Id));
         }
 
         public static EquivalencyAssertionOptions<TSubject> ExcludeNavigationProperties<TSubject>(this EquivalencyAssertionOptions<TSubject> options)
@@ -286,12 +275,12 @@ namespace Infrastructure.Test
 
         public static IEnumerable<ITestCommand> RepeatCore(this IEnumerable<ITestCommand> commands, int count)
         {
-            foreach (var command in commands)
+            foreach(var command in commands)
             {
                 var theoryCommand = command as TheoryCommand;
-                if (theoryCommand != null && theoryCommand.Parameters != null)
+                if(theoryCommand != null && theoryCommand.Parameters != null)
                 {
-                    foreach (var context in theoryCommand.Parameters.OfType<DbContext>())
+                    foreach(var context in theoryCommand.Parameters.OfType<DbContext>())
                     {
                         context.DetachAll();
                     }
@@ -323,14 +312,14 @@ namespace Infrastructure.Test
         public object GetService(Type serviceType)
         {
             object injectedValue;
-            if (injected != null && injected.TryGetValue(serviceType, out injectedValue))
+            if(injected != null && injected.TryGetValue(serviceType, out injectedValue))
             {
                 return injectedValue;
             }
             var realType = ObjectFactory.Container.Model.DefaultTypeFor(serviceType);
             var service = fixture.Create(realType);
             var disposable = service as IDisposable;
-            if (disposable != null)
+            if(disposable != null)
             {
                 disposables.Add(disposable);
             }
@@ -344,7 +333,7 @@ namespace Infrastructure.Test
 
         public void Dispose()
         {
-            foreach (var disposable in disposables)
+            foreach(var disposable in disposables)
             {
                 disposable.Dispose();
             }
