@@ -7,10 +7,11 @@ using System.Linq.Expressions;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
 using System.Web.Http.Results;
-using Infrastructure.Web.GridProfile;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using StructureMap.Attributes;
+using System.Net;
+using System.Net.Http;
 
 namespace Infrastructure.Web
 {
@@ -38,9 +39,6 @@ namespace Infrastructure.Web
         [SetterProperty]
         public TContext Context { get; set; }
 
-        [SetterProperty]
-        public IGridProfileStorage GridProfileStorage { get; set; }
-
         protected TResponse Get<TResponse>(IQuery<TResponse> query)
         {
             return Mediator.Get(query);
@@ -51,18 +49,15 @@ namespace Infrastructure.Web
             return Mediator.Send(command);
         }
 
-        public virtual GridProfileDataSourceResult GetAll(GridProfileDataSourceRequest request)
+        public virtual DataSourceResult GetAll([ModelBinder]DataSourceRequest request)
         {
-            var result = new GridProfileDataSourceResult(GetAllEntities().ToDataSourceResult(request));
-
-            if (request.IncludeProfile && GridProfileStorage != null)
-            {
-                result.Profile = GridProfileStorage.LoadProfile(request.GridId);
-            }
-
-            return result;
+            return GetAllEntities().ToDataSourceResult(request);
         }
-
+        //[NonAction]
+        //public virtual object MapToDto(TViewModel entity)
+        //{
+        //    return entity;
+        //}
         protected virtual TViewModel Find(int id)
         {
             return GetById(id);
@@ -71,15 +66,24 @@ namespace Infrastructure.Web
         public virtual IHttpActionResult Get(int id)
         {
             var entity = GetById(id);
-            return CheckExists(entity, Ok(entity));
+            if (entity == null)
+            {
+                return NotFound();
+            }
+            return Ok(entity);
         }
 
         public virtual IHttpActionResult Post(TViewModel entity)
         {
-            Add(entity);
-            Context.SaveChanges();
-            var result = GetById(entity.Id);
-            return CheckExists(result, Created(result));
+            if (ModelState.IsValid)
+            {
+                Add(entity);
+                Context.SaveChanges();
+                var result = GetById(entity.Id);
+                return Created(result);
+            }
+
+            return new ResponseMessageResult(Request.CreateErrorResponse((HttpStatusCode)422, ModelState));
         }
 
         public virtual IHttpActionResult Delete(int id)
@@ -99,10 +103,16 @@ namespace Infrastructure.Web
             {
                 return BadRequest();
             }
+
             try
             {
-                Modify(entity);
-                Context.SaveChanges();
+                if (ModelState.IsValid)
+                {
+                    Modify(entity);
+                    Context.SaveChanges();
+                }
+                else
+                    return new ResponseMessageResult(Request.CreateErrorResponse((HttpStatusCode)422, ModelState));
             }
             catch (Exception)
             {
@@ -117,16 +127,7 @@ namespace Infrastructure.Web
                 }
             }
             var result = GetById(entity.Id);
-            return CheckExists(result, Ok(result));
-        }
-
-        protected IHttpActionResult CheckExists(TViewModel entity, IHttpActionResult result)
-        {
-            if(entity == null)
-            {
-                return NotFound();
-            }
-            return result;
+            return Ok(result);            
         }
 
         protected internal OkNegotiatedContentResult<Wrapper> Ok(TViewModel entity)
@@ -137,6 +138,26 @@ namespace Infrastructure.Web
         protected internal CreatedAtRouteNegotiatedContentResult<Wrapper> Created(TViewModel entity)
         {
             return CreatedAtRoute("DefaultApi", new { id = entity.Id }, new Wrapper(entity));
+        }
+    }
+
+    public class CrudNomController<TContext, TEntity> : CrudController<TContext, TEntity>
+        where TEntity : ValidFromUntilBaseType
+        where TContext : BaseContext
+    {
+        protected override IQueryable<TEntity> GetAllEntities(Expression<Func<TEntity, bool>> where)
+        {
+            IQueryable<TEntity> entities = Context.Set<TEntity>();
+
+            var currentDate = DateTime.Now.Date;
+            entities = entities.Where(x => (x.ValidFrom == null || x.ValidFrom <= currentDate)
+                                        && (x.ValidUntil == null || x.ValidUntil >= currentDate));
+            
+            if (where != null)
+            {
+                entities = entities.Where(where);
+            }
+            return Include(entities).AsNoTracking();
         }
     }
 
@@ -162,6 +183,7 @@ namespace Infrastructure.Web
         protected virtual IQueryable<TEntity> GetAllEntities(Expression<Func<TEntity, bool>> where)
         {
             IQueryable<TEntity> entities = Context.Set<TEntity>();
+           
             if (where != null)
             {
                 entities = entities.Where(where);
@@ -211,11 +233,18 @@ namespace Infrastructure.Web
         public int Total { get; set; }
     }
 
+    public abstract class ValidFromUntilBaseType : VersionedEntity
+    {
+        public DateTime? ValidFrom { get; set; }
+
+        public DateTime? ValidUntil { get; set; }
+    }
+
     public abstract class VersionedEntity : Entity
     {
         [Timestamp]
         public byte[] RowVersion { get; set; }
-    }
+    }   
 
     public interface IEntity
     {
