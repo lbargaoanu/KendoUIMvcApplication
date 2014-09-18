@@ -118,6 +118,7 @@
     <Compile Include="GridProfile\GridProfileDataSourceRequest.cs" />
     <Compile Include="GridProfile\GridProfileDataSourceRequestModelBinder.cs" />
     <Compile Include="GridProfile\GridProfileDataSourceResult.cs" />
+    <Compile Include="GridProfile\GridProfileStorage.cs" />
     <Compile Include="GridProfile\IGridProfileStorage.cs" />
     <Compile Include="Mediator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
