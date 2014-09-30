@@ -11,8 +11,9 @@ namespace Northwind
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
     
-    public partial class Product : Infrastructure.Web.VersionedEntity
+    public partial class Product : Infrastructure.Web.VersionedEntity, IValidatableObject
     {
         public Product()
         {
@@ -71,5 +72,10 @@ namespace Northwind
         public virtual Category Category { get; set; }
         //public ICollection<Order_Detail> Order_Details { get; set; }
         public virtual Supplier Supplier { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            return new ValidationResult[0];
+        }
     }
 }

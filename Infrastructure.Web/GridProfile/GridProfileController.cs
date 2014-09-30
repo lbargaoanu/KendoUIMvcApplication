@@ -1,4 +1,6 @@
-﻿using System.Web.Http;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Web.Http;
 
 namespace Infrastructure.Web.GridProfile
 {
@@ -22,9 +24,28 @@ namespace Infrastructure.Web.GridProfile
         }
     }
 
-    public class GridProfile
+    public class Child : NomEntity, IValidatableObject
     {
+        [StringLength(100)]
+        public string Name { get; set; }
+
+        public System.Collections.Generic.IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            return new ValidationResult[0];
+        }
+    }
+
+    public class GridProfile : Entity, IValidatableObject
+    {
+        [Required]
         public string GridId { get; set; }
         public string State { get; set; }
+
+        public ICollection<Child> Children { get; set; }
+
+        public System.Collections.Generic.IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            return new ValidationResult[0];
+        }
     }
 }

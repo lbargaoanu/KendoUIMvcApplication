@@ -7,9 +7,13 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Web.Http;
 using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
+using System.Web.Http.Metadata;
+using System.Web.Http.Validation;
 using AutoMapper;
+using Infrastructure.Web.GridProfile;
 using Newtonsoft.Json;
 using StructureMap.Pipeline;
 using StructureMap.Web;
@@ -18,6 +22,9 @@ namespace Infrastructure.Web
 {
     public static class Utils
     {
+        private static readonly MethodInfo Id = Utils.Getter<Entity, int>(e => e.Id);
+        private static readonly MethodInfo Contains = Utils.Method<object>(o => Enumerable.Contains<int>(null, 0));
+
         public static void SetRowVersion<TEntity>(this TEntity destination, TEntity source, DbContext context) where TEntity : VersionedEntity
         {
             if(source.RowVersion != destination.RowVersion)
@@ -57,6 +64,56 @@ namespace Infrastructure.Web
         public static bool IsEntityCollection(this Type type)
         {
             return type != typeof(string) && !type.IsArray && typeof(IEnumerable).IsAssignableFrom(type);
+        }
+
+        public static Type GetNomenclatorCollectionElementType(this Type type)
+        {
+            if(!type.IsEntityCollection() || !type.IsConstructedGenericType || type.GetGenericTypeDefinition() != typeof(ICollection<>))
+            {
+                return null;
+            }
+            var elementType = type.GetGenericArguments()[0];
+            return typeof(NomEntity).IsAssignableFrom(elementType) ? elementType : null;
+        }
+
+        public static IQueryable NonGenericWhere(this IQueryable source, Expression predicate)
+        {
+            return source.Provider.CreateQuery(Expression.Call(typeof(Queryable), "Where", new[] { source.ElementType }, source.Expression, predicate));
+        }
+
+        public static IEnumerable<Entity> GetEntities(DbContext context, Type entityType, IEnumerable<int> ids)
+        {
+            var dbSet = context.Set(entityType);
+            var parameter = Expression.Parameter(entityType, "item");
+            var getId = Expression.Property(parameter, Id);
+            var enumerableIds = Expression.Constant(ids);
+            var predicate = Expression.Call(Contains, enumerableIds, getId);
+            var where = Expression.Lambda(predicate, parameter);
+            return (IEnumerable<Entity>)dbSet.NonGenericWhere(where);
+        }
+
+        public static void Set(object model, Type modelType, DbContext context, ModelMetadataProvider metadataProvider)
+        {
+            if(!modelType.IsEntity())
+            {
+                return;
+            }
+            foreach(var metadata in metadataProvider.GetMetadataForProperties(model, modelType))
+            {
+                var nomenclatorType = metadata.ModelType.GetNomenclatorCollectionElementType();
+                if(nomenclatorType == null)
+                {
+                    continue;
+                }
+                var childrenColection = (IList)metadata.Model;
+                var existingIds = ((IEnumerable<Entity>)childrenColection).Select(e => e.Id);
+                var existingEntities = GetEntities(context, nomenclatorType, existingIds).ToArray();
+                for(int index = 0; index < childrenColection.Count; index++)
+                {
+                    var entity = (Entity)childrenColection[index];
+                    childrenColection[index] = existingEntities.Single(e=>e.Id==entity.Id);
+                }
+            }
         }
 
         public static IMappingExpression IgnoreProperties(this IMappingExpression mappingExpression, Type destinationType, Func<PropertyInfo, bool> filter)
@@ -108,6 +165,11 @@ namespace Infrastructure.Web
             return e.UntypedMethod();
         }
 
+        public static MethodInfo Getter<TObject, TProperty>(this Expression<Func<TObject, TProperty>> e)
+        {
+            return ((PropertyInfo)e.UntypedPropertyOrField()).GetGetMethod();
+        }
+
         public static MemberInfo PropertyOrField<TObject, TProperty>(this Expression<Func<TObject, TProperty>> e)
         {
             return e.UntypedPropertyOrField();
@@ -142,14 +204,37 @@ namespace Infrastructure.Web
         }
     }
 
+    public class ChildCollectionsBodyModelValidator : IBodyModelValidator
+    {
+        private readonly IBodyModelValidator validator;
+
+        public ChildCollectionsBodyModelValidator(IBodyModelValidator validator)
+        {
+            this.validator = validator;
+        }
+
+        public bool Validate(object model, Type type, ModelMetadataProvider metadataProvider, HttpActionContext actionContext, string keyPrefix)
+        {
+            var context = ((IContextController)actionContext.ControllerContext.Controller).Context;
+            Utils.Set(model, type, context, metadataProvider);
+            return validator.Validate(model, type, metadataProvider, actionContext, keyPrefix);
+        }
+    }
+
     public class ValidateModelAttribute : ActionFilterAttribute
     {
+        public ValidateModelAttribute(HttpConfiguration config)
+        {
+            config.Services.Replace(typeof(IBodyModelValidator), new ChildCollectionsBodyModelValidator(config.Services.GetBodyModelValidator()));
+        }
+
         public override void OnActionExecuting(HttpActionContext actionContext)
         {
-            if(actionContext.ModelState.IsValid == false)
+            if(actionContext.ModelState.IsValid)
             {
-                actionContext.Response = actionContext.Request.CreateErrorResponse(HttpStatusCode.BadRequest, actionContext.ModelState);
+                return;
             }
+            actionContext.Response = actionContext.Request.CreateErrorResponse(HttpStatusCode.BadRequest, actionContext.ModelState);
         }
     }
 

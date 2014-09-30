@@ -11,8 +11,9 @@ namespace Northwind
 {
     using System;
     using System.Collections.Generic;
+    using Infrastructure.Web;
     
-    public partial class Employee : Infrastructure.Web.VersionedEntity
+    public partial class Employee : VersionedEntity
     {
         public Employee()
         {

@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Web.Http;
 using System.Web.Http.ModelBinding;
 using System.Web.Http.Results;
@@ -14,10 +15,12 @@ using StructureMap.Attributes;
 
 namespace Infrastructure.Web
 {
-    public abstract class ContextController<TContext, TViewModel> : ApiController
+    public abstract class ContextController<TContext, TViewModel> : ApiController, IContextController
         where TContext : BaseContext
         where TViewModel : IEntity
     {
+        public static readonly MethodInfo Where = Utils.Method<TViewModel>(e => ((IQueryable<TViewModel>)null).Where(_ => true));
+
         protected abstract IQueryable<TViewModel> GetAllEntities();
         protected abstract void Add(TViewModel entity);
         protected abstract void Delete(TViewModel entity);
@@ -37,6 +40,14 @@ namespace Infrastructure.Web
 
         [SetterProperty]
         public TContext Context { get; set; }
+
+        DbContext IContextController.Context
+        {
+            get
+            {
+                return Context;
+            }
+        }
 
         [SetterProperty]
         public IGridProfileStorage GridProfileStorage { get; set; }
@@ -200,6 +211,11 @@ namespace Infrastructure.Web
         }
     }
 
+    public interface IContextController
+    {
+        DbContext Context { get; }
+    }
+
     public class Wrapper
     {
         public Wrapper(params IEntity[] entities)
@@ -235,5 +251,9 @@ namespace Infrastructure.Web
                 return Id > 0;
             }
         }
+    }
+
+    public class NomEntity : VersionedEntity
+    {
     }
 }

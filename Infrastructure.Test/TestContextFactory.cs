@@ -252,12 +252,10 @@ namespace Infrastructure.Test
 
     public class ContextCustomization<TContext> : ICustomization, ISpecimenBuilder where TContext : BaseContext
     {
-        public const int CollectionCount = 8;
-
         public void Customize(IFixture fixture)
         {
             fixture.Customize<TContext>(c => c.FromFactory(TestContextFactory<TContext>.New).OmitAutoProperties());
-            fixture.RepeatCount = CollectionCount;
+            fixture.RepeatCount = Extensions.CollectionCount;
             fixture.Customizations.Add(this);
         }
 

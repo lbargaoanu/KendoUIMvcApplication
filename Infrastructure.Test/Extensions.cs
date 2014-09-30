@@ -25,6 +25,8 @@ namespace Infrastructure.Test
 {
     public static class Extensions
     {
+        public const int CollectionCount = 8;
+
         private const int PageSize = 3;
         private const int PageCount = 2;
         private static string[] IntegerTypes = new[] { "int", "bigint", "smallint", "tinyint", "bit" };

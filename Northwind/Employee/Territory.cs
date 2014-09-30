@@ -11,8 +11,9 @@ namespace Northwind
 {
     using System;
     using System.Collections.Generic;
+    using Infrastructure.Web;
     
-    public partial class Territory : Infrastructure.Web.VersionedEntity
+    public partial class Territory : NomEntity
     {
         public Territory()
         {
