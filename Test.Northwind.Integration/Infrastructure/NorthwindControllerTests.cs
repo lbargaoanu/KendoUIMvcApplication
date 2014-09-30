@@ -12,12 +12,13 @@ namespace Test.Northwind.Integration
     {
         static NorthwindControllerTests()
         {
-            KendoUIMvcApplication.StructureMap.Register();
             TestContextFactory<ProductServiceContext>.Initialize(SeedDatabase);
         }
 
         public static void SeedDatabase(ProductServiceContext context, IFixture fixture)
         {
+            KendoUIMvcApplication.StructureMap.Register();
+
             var categories = fixture.CreateMany<Category>();
             var suppliers = fixture.CreateMany<Supplier>();
             fixture.Customize<Region>(c => c.Without(r => r.Territories));

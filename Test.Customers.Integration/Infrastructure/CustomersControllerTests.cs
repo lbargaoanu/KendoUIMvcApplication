@@ -12,12 +12,12 @@ namespace Test.Customers.Integration
     {
         static CustomersControllerTests()
         {
-            KendoUIMvcApplication.StructureMap.Register();
             TestContextFactory<CustomerContext>.Initialize(SeedDatabase);
         }
 
         public static void SeedDatabase(CustomerContext context, IFixture fixture)
         {
+            KendoUIMvcApplication.StructureMap.Register();
             //var categories = fixture.CreateMany<Category>();
             //var suppliers = fixture.CreateMany<Supplier>();
             //fixture.Customize<Region>(c => c.Without(r => r.Territories));

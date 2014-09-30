@@ -30,6 +30,7 @@ namespace Infrastructure.Test
     {
         private static UInt32SequenceGenerator sequence = new UInt32SequenceGenerator();
         private static readonly TContext context = CreateDatabase();
+        private static bool seedExecuted;
 
         public static TContext New(DbConnection connection)
         {
@@ -114,11 +115,23 @@ namespace Infrastructure.Test
 
         public static void Initialize(Action<TContext, IFixture> seedDatabase = null)
         {
-            if(seedDatabase != null)
+            if(seedExecuted)
             {
-                seedDatabase(context, ContextAutoDataAttribute.CreateFixture(typeof(TContext)));
+                return;
             }
-            context.SaveChanges();
+            lock(context)
+            {
+                if(seedExecuted)
+                {
+                    return;
+                }
+                seedExecuted = true;
+                if(seedDatabase != null)
+                {
+                    seedDatabase(context, ContextAutoDataAttribute.CreateFixture(typeof(TContext)));
+                }
+                context.SaveChanges();
+            }
         }
 
         private static void SetRowVersion(IEnumerable<object> entities)
