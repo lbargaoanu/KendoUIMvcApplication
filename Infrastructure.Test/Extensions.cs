@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Core.Metadata.Edm;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Web.Http;
@@ -166,17 +167,18 @@ namespace Infrastructure.Test
         {
             using(var scope = new AutofixtureDependencyScope<TContext>(injected))
             {
-                if(controller.Context == null)
+                Trace.Assert(controller.Context == null);
+                controller.Context = (TContext)scope.GetService(typeof(TContext));
+                controller.Mediator = new Mediator(scope);
+                if(entity != null)
                 {
-                    controller.Context = (TContext)scope.GetService(typeof(TContext));
-                    controller.Mediator = new Mediator(scope);
-                    if(entity != null)
-                    {
-                        Utils.SetNomCollectionsUnchanged(entity, typeof(TEntity), controller.Context, new TestChildCollectionsModelMetadataProvider(entity));
-                    }
+                    Utils.SetNomCollectionsUnchanged(entity, typeof(TEntity), controller.Context, new TestChildCollectionsModelMetadataProvider(entity));
                 }
+                
                 var result = action(controller);
+                
                 controller.Context.SaveChanges();
+
                 return result;
             }
         }
