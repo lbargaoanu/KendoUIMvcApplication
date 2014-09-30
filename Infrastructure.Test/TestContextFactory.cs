@@ -125,12 +125,12 @@ namespace Infrastructure.Test
                 {
                     return;
                 }
-                seedExecuted = true;
                 if(seedDatabase != null)
                 {
                     seedDatabase(context, ContextAutoDataAttribute.CreateFixture(typeof(TContext)));
                 }
                 context.SaveChanges();
+                seedExecuted = true;
             }
         }
 
