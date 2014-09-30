@@ -22,7 +22,7 @@ namespace KendoUIMvcApplication
 
             var formatters = config.Formatters;
             formatters.Remove(formatters.XmlFormatter);
-            formatters.JsonFormatter.SerializerSettings.Converters.Add(new JQueryArrayConverter());
+            //formatters.JsonFormatter.SerializerSettings.Converters.Add(new JQueryArrayConverter());
             config.Filters.Add(new SaveChangesFilter());
             config.Filters.Add(new ValidateModelAttribute(config));
             //config.Formatters.JsonFormatter.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Serialize;

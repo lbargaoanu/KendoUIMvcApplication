@@ -92,26 +92,18 @@ namespace Infrastructure.Web
             return (IEnumerable<Entity>)dbSet.NonGenericWhere(where);
         }
 
-        public static void Set(object model, Type modelType, DbContext context, ModelMetadataProvider metadataProvider)
+        public static void SetNomCollectionsUnchanged(object model, Type modelType, DbContext context, ChildCollectionsModelMetadataProvider metadataProvider)
         {
             if(!modelType.IsEntity())
             {
                 return;
             }
-            foreach(var metadata in metadataProvider.GetMetadataForProperties(model, modelType))
+            foreach(var metadata in metadataProvider.GetChildCollections(model, modelType))
             {
-                var nomenclatorType = metadata.ModelType.GetNomenclatorCollectionElementType();
-                if(nomenclatorType == null)
+                var childrenColection = (IEnumerable)metadata.Model;
+                foreach(var child in childrenColection)
                 {
-                    continue;
-                }
-                var childrenColection = (IList)metadata.Model;
-                var existingIds = ((IEnumerable<Entity>)childrenColection).Select(e => e.Id);
-                var existingEntities = GetEntities(context, nomenclatorType, existingIds).ToArray();
-                for(int index = 0; index < childrenColection.Count; index++)
-                {
-                    var entity = (Entity)childrenColection[index];
-                    childrenColection[index] = existingEntities.Single(e=>e.Id==entity.Id);
+                    context.Entry(child).State = EntityState.Unchanged;
                 }
             }
         }
@@ -204,6 +196,40 @@ namespace Infrastructure.Web
         }
     }
 
+    public class ChildCollectionsModelMetadataProvider : ModelMetadataProvider
+    {
+        private readonly ModelMetadataProvider metadataProvider;
+
+        public ChildCollectionsModelMetadataProvider()
+        {
+        }
+
+        public ChildCollectionsModelMetadataProvider(ModelMetadataProvider metadataProvider)
+        {
+            this.metadataProvider = metadataProvider;
+        }
+
+        public override IEnumerable<ModelMetadata> GetMetadataForProperties(object container, Type containerType)
+        {
+            return metadataProvider.GetMetadataForProperties(container, containerType).Where(m=>m.ModelType.GetNomenclatorCollectionElementType() == null);
+        }
+
+        public virtual IEnumerable<ModelMetadata> GetChildCollections(object container, Type containerType)
+        {
+            return metadataProvider.GetMetadataForProperties(container, containerType).Where(m => m.ModelType.GetNomenclatorCollectionElementType() != null);
+        }
+
+        public override ModelMetadata GetMetadataForProperty(Func<object> modelAccessor, Type containerType, string propertyName)
+        {
+            return metadataProvider.GetMetadataForProperty(modelAccessor, containerType, propertyName);
+        }
+
+        public override ModelMetadata GetMetadataForType(Func<object> modelAccessor, Type modelType)
+        {
+            return metadataProvider.GetMetadataForType(modelAccessor, modelType);
+        }
+    }
+
     public class ChildCollectionsBodyModelValidator : IBodyModelValidator
     {
         private readonly IBodyModelValidator validator;
@@ -216,7 +242,7 @@ namespace Infrastructure.Web
         public bool Validate(object model, Type type, ModelMetadataProvider metadataProvider, HttpActionContext actionContext, string keyPrefix)
         {
             var context = ((IContextController)actionContext.ControllerContext.Controller).Context;
-            Utils.Set(model, type, context, metadataProvider);
+            Utils.SetNomCollectionsUnchanged(model, type, context, (ChildCollectionsModelMetadataProvider) metadataProvider);
             return validator.Validate(model, type, metadataProvider, actionContext, keyPrefix);
         }
     }
@@ -226,6 +252,7 @@ namespace Infrastructure.Web
         public ValidateModelAttribute(HttpConfiguration config)
         {
             config.Services.Replace(typeof(IBodyModelValidator), new ChildCollectionsBodyModelValidator(config.Services.GetBodyModelValidator()));
+            config.Services.Replace(typeof(ModelMetadataProvider), new ChildCollectionsModelMetadataProvider(config.Services.GetModelMetadataProvider()));
         }
 
         public override void OnActionExecuting(HttpActionContext actionContext)

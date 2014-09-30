@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Web.Http;
 using System.Web.Http.Dependencies;
+using System.Web.Http.Metadata;
 using System.Web.Http.Results;
 using FluentAssertions;
 using FluentAssertions.Equivalency;
@@ -131,7 +132,7 @@ namespace Infrastructure.Test
             where TEntity : VersionedEntity
             where TContext : BaseContext
         {
-            return controller.Action(c => c.Put(entity.Id, entity), injected);
+            return controller.Action(c => c.Put(entity.Id, entity), entity, injected);
         }
 
         public static IHttpActionResult PutAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, int id, TEntity entity) where TEntity : VersionedEntity where TContext : BaseContext
@@ -146,7 +147,7 @@ namespace Infrastructure.Test
 
         public static IHttpActionResult PostAndSave<TEntity, TContext>(this CrudController<TContext, TEntity> controller, TEntity entity) where TEntity : VersionedEntity where TContext : BaseContext
         {
-            return controller.Action(c => c.Post(entity));
+            return controller.Action(c => c.Post(entity), entity);
         }
 
         public static DataSourceResult HandleGetAll<TEntity, TContext>(this CrudController<TContext, TEntity> controller) where TEntity : VersionedEntity where TContext : BaseContext
@@ -159,7 +160,7 @@ namespace Infrastructure.Test
             return controller.Action(c => c.Get(id));
         }
 
-        public static TResult Action<TContext, TEntity, TResult>(this CrudController<TContext, TEntity> controller, Func<CrudController<TContext, TEntity>, TResult> action, Dictionary<Type, object> injected = null)
+        public static TResult Action<TContext, TEntity, TResult>(this CrudController<TContext, TEntity> controller, Func<CrudController<TContext, TEntity>, TResult> action, TEntity entity = null, Dictionary<Type, object> injected = null)
             where TEntity : VersionedEntity
             where TContext : BaseContext
         {
@@ -169,6 +170,10 @@ namespace Infrastructure.Test
                 {
                     controller.Context = (TContext)scope.GetService(typeof(TContext));
                     controller.Mediator = new Mediator(scope);
+                    if(entity != null)
+                    {
+                        Utils.SetNomCollectionsUnchanged(entity, typeof(TEntity), controller.Context, new TestChildCollectionsModelMetadataProvider(entity));
+                    }
                 }
                 var result = action(controller);
                 controller.Context.SaveChanges();
@@ -339,6 +344,26 @@ namespace Infrastructure.Test
             {
                 disposable.Dispose();
             }
+        }
+    }
+
+    public class TestChildCollectionsModelMetadataProvider : ChildCollectionsModelMetadataProvider
+    {
+        private readonly ModelMetadata[] properties;
+
+        public TestChildCollectionsModelMetadataProvider(object entity)
+        {
+            properties = entity.GetType().GetProperties().Select(p => new ModelMetadata(this, entity.GetType(), () => p.GetValue(entity), p.PropertyType, p.Name)).ToArray();
+        }
+
+        public override IEnumerable<ModelMetadata> GetMetadataForProperties(object container, Type containerType)
+        {
+            return properties;
+        }
+
+        public override IEnumerable<ModelMetadata> GetChildCollections(object container, Type containerType)
+        {
+            return properties.Where(m => m.ModelType.GetNomenclatorCollectionElementType() != null);
         }
     }
 }

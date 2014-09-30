@@ -10,19 +10,12 @@ namespace Northwind.Controllers
 {
     public class EmployeeController : NorthwindController<Employee>
     {
-        protected override void Add(Employee entity)
-        {
-            entity.Territories.Set(Context);
-            base.Add(entity);
-        }
-
         protected override void Modify(Employee entity)
         {
             var existingEntity = Context.Employees.GetWithInclude(entity.Id, e => e.Territories);
             SetRowVersion(entity, existingEntity);
             Mapper.Map(entity, existingEntity);
             existingEntity.Territories = entity.Territories;
-            existingEntity.Territories.Set(Context);
         }
     }
 }

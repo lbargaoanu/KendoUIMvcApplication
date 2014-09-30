@@ -1,18 +1,11 @@
-using System;
-using Moq;
-using System.Linq;
-using AutoMapper;
-using FluentAssertions;
-using KendoUIMvcApplication;
-using Northwind.Controllers;
-using Northwind;
-using Xunit;
-using Xunit.Extensions;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
+using System.Linq;
+using FluentAssertions;
 using Infrastructure.Test;
 using Infrastructure.Web;
-using System.Web.Http.Metadata;
+using Northwind;
+using Northwind.Controllers;
+using Xunit.Extensions;
 
 namespace Test.Northwind.Integration
 {
@@ -25,13 +18,11 @@ namespace Test.Northwind.Integration
             newEntity.Territories.Set(ids);
             newEntity.Territories = newEntity.Territories.ToList();
 
-            var metadataProvider = new Mock<ModelMetadataProvider>();
-            var properties = typeof(Employee).GetProperties().Select(p => new ModelMetadata(metadataProvider.Object, typeof(Employee), () => p.GetValue(newEntity), p.PropertyType, p.Name));
-            metadataProvider.Setup(m => m.GetMetadataForProperties(newEntity, typeof(Employee))).Returns(properties);
+            var metadataProvider = new TestChildCollectionsModelMetadataProvider(newEntity);
 
-            Utils.Set(newEntity, typeof(Employee), context, metadataProvider.Object);
+            Utils.SetNomCollectionsUnchanged(newEntity, typeof(Employee), context, metadataProvider);
 
-            newEntity.Territories.ShouldAllBeEquivalentTo(context.Territories.Where(e => ids.Contains(e.Id)));
+            newEntity.Territories.Select(t => context.Entry(t).State).Count(s => s == EntityState.Unchanged).Should().Be(Extensions.CollectionCount);
         }
 
         [Theory, ContextAutoData]
