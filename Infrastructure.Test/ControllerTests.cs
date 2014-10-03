@@ -22,6 +22,11 @@ namespace Infrastructure.Test
             TestContextFactory<TContext>.Initialize(initializer);
         }
 
+        protected IFixture CreateFixture()
+        {
+            return ContextAutoDataAttribute.CreateFixture(typeof(TContext));
+        }
+
         [Theory, ContextAutoData]
         public virtual void ShouldDelete(TEntity newEntity, TContext createContext, TContext readContext)
         {
