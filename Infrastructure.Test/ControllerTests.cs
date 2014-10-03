@@ -17,6 +17,11 @@ namespace Infrastructure.Test
     {
         private static readonly Func<TEntity, bool> True = e => true;
 
+        protected static void Initialize(Action<TContext, IFixture> initializer)
+        {
+            TestContextFactory<TContext>.Initialize(initializer);
+        }
+
         [Theory, ContextAutoData]
         public virtual void ShouldDelete(TEntity newEntity, TContext createContext, TContext readContext)
         {

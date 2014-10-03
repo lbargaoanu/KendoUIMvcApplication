@@ -113,7 +113,7 @@ namespace Infrastructure.Test
             return context;
         }
 
-        public static void Initialize(Action<TContext, IFixture> seedDatabase = null)
+        public static void Initialize(Action<TContext, IFixture> initializer)
         {
             if(seedExecuted)
             {
@@ -125,9 +125,9 @@ namespace Infrastructure.Test
                 {
                     return;
                 }
-                if(seedDatabase != null)
+                if(initializer != null)
                 {
-                    seedDatabase(context, ContextAutoDataAttribute.CreateFixture(typeof(TContext)));
+                    initializer(context, ContextAutoDataAttribute.CreateFixture(typeof(TContext)));
                 }
                 context.SaveChanges();
                 seedExecuted = true;

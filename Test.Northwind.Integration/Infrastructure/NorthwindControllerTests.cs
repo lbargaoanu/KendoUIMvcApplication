@@ -12,10 +12,10 @@ namespace Test.Northwind.Integration
     {
         static NorthwindControllerTests()
         {
-            TestContextFactory<ProductServiceContext>.Initialize(SeedDatabase);
+            Initialize(Initializer);
         }
 
-        public static void SeedDatabase(ProductServiceContext context, IFixture fixture)
+        public static void Initializer(ProductServiceContext context, IFixture fixture)
         {
             KendoUIMvcApplication.StructureMap.Register();
 
