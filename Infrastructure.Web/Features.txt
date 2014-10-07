@@ -1,0 +1,6 @@
+generic crud controler pentru entitati si pentru view models
+code first, versioning, modele complexe, unit of work
+paginare, sortare, filtrare
+command & query
+dependency injection
+mediator
