@@ -1,9 +1,18 @@
 ﻿using System.Data.Common;
 using System.Data.Entity;
 using Infrastructure.Web;
+using StructureMap.Configuration.DSL;
 
 namespace Customers
 {
+    public class CustomersRegistry : Registry
+    {
+        public CustomersRegistry()
+        {
+            this.RegisterContext<CustomerContext>();
+        }
+    }
+
     public abstract class CustomersQueryHandler<TQuery, TResponse> : QueryHandler<CustomerContext, TQuery, TResponse> where TQuery : IQuery<TResponse>
     {
     }

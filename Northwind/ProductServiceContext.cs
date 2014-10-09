@@ -4,9 +4,18 @@ using System.Data.Entity;
 using System.Data.Entity.Core.Objects;
 using System.Data.Entity.Infrastructure;
 using Infrastructure.Web;
+using StructureMap.Configuration.DSL;
 
 namespace Northwind
 {
+    public class NorthwindRegistry : Registry
+    {
+        public NorthwindRegistry()
+        {
+            this.RegisterContext<ProductServiceContext>();
+        }
+    }
+
     public class NorthwindController<TEntity> : CrudController<ProductServiceContext, TEntity> where TEntity : VersionedEntity
     {
     }

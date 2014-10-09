@@ -15,6 +15,8 @@ using System.Web.Http.Validation;
 using AutoMapper;
 using Infrastructure.Web.GridProfile;
 using Newtonsoft.Json;
+using StructureMap;
+using StructureMap.Configuration.DSL;
 using StructureMap.Pipeline;
 using StructureMap.Web;
 
@@ -24,6 +26,11 @@ namespace Infrastructure.Web
     {
         private static readonly MethodInfo Id = Utils.Getter<Entity, int>(e => e.Id);
         private static readonly MethodInfo Contains = Utils.Method<object>(o => Enumerable.Contains<int>(null, 0));
+
+        public static void RegisterContext<TContext>(this Registry registry) where TContext : BaseContext, new()
+        {
+            registry.For<TContext>().HttpContextScoped().Use<TContext>().SelectConstructor(() => new TContext());
+        }
 
         public static void SetRowVersion<TEntity>(this TEntity destination, TEntity source, DbContext context) where TEntity : VersionedEntity
         {
