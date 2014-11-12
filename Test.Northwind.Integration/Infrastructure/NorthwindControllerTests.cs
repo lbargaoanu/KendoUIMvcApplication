@@ -25,11 +25,19 @@ namespace Test.Northwind.Integration
             var regions = fixture.CreateMany<Region>();
             fixture.Customize<Territory>(c => c.Without(r => r.Employees));
             var territories = fixture.CreateMany<Territory>();
+            var employees = fixture.CreateMany<Employee>();
+            fixture.Customize<Employee>(c => c.Without(r => r.Territories));
 
             context.Categories.AddRange(categories);
             context.Suppliers.AddRange(suppliers);
             context.Regions.AddRange(regions);
             context.Territories.AddRange(territories);
+            context.Employees.AddRange(employees);
+
+            context.SaveChanges();
+
+            var products = fixture.CreateMany<Product>();
+            context.Products.AddRange(products);
         }
     }
 }
