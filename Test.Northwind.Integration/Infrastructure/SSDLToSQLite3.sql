@@ -1,6 +1,6 @@
 
 -- --------------------------------------------------
--- Date Created: 08/07/2014 17:29:58
+-- Date Created: 11/12/2014 11:39:32
 -- compatible SQLite
 -- --------------------------------------------------
 -- Dropping existing tables
@@ -105,8 +105,6 @@ CREATE TABLE [OrderDetails] (
 -- Creating table 'Orders'
 CREATE TABLE [Orders] (
     [OrderID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    [OrderID1] INTEGER NOT NULL,
-    [CustomerID] INTEGER NOT NULL,
     [EmployeeID] INTEGER,
     [OrderDate] DATETIME,
     [RequiredDate] DATETIME,
@@ -136,7 +134,6 @@ CREATE TABLE [Orders] (
 -- Creating table 'Shippers'
 CREATE TABLE [Shippers] (
     [ShipperID] INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    [ShipperID1] INTEGER NOT NULL,
     [CompanyName] TEXT,
     [Phone] TEXT,
     [RowVersion] BLOB NOT NULL
