@@ -92,7 +92,7 @@ namespace Infrastructure.Test
         private static TContext CreateDatabase()
         {
             Database.SetInitializer<TContext>(null);
-            var connection = new SQLiteConnection("FullUri=file::memory:?cache=shared;foreign keys=True");
+            var connection = new SQLiteConnection("FullUri=file::memory:;foreign keys=True");
             connection.Open();
             var context = New(connection);
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Infrastructure", "ssdltosqlite3.sql");
