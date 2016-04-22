@@ -70,6 +70,9 @@ namespace Infrastructure.Web
         where TContext : DbContext
     {
         [SetterProperty]
+        public IMediator Mediator { get; set; }
+
+        [SetterProperty]
         public TContext Context { get; set; }
 
         public TResponse Execute(TQuery query)
@@ -93,6 +96,9 @@ namespace Infrastructure.Web
         where TCommand : ICommand<TResult>
         where TContext : DbContext
     {
+        [SetterProperty]
+        public IMediator Mediator { get; set; }
+
         [SetterProperty]
         public TContext Context { get; set; }
 
@@ -118,6 +124,9 @@ namespace Infrastructure.Web
         {
             destination.SetRowVersion(source, Context);
         }
+
+        [SetterProperty]
+        public IMediator Mediator { get; set; }
 
         [SetterProperty]
         public TContext Context { get; set; }
